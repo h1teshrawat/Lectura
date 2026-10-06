@@ -21,7 +21,7 @@ export function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2 rounded-lg font-semibold tracking-tight">
       <LogoMark />
-      <span className="text-[15px]">LectureLens</span>
+      <span className="text-[15px]">Lectura</span>
     </Link>
   );
 }

@@ -1,1 +1,1 @@
-"""LectureLens backend package."""
+"""Lectura backend package."""

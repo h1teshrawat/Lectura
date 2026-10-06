@@ -10,7 +10,7 @@ The API layer (Phase d) turns these into clean JSON error responses.
 UPLOAD_HINT = "Tip: download the lecture yourself and upload the audio/video file instead."
 
 
-class LectureLensError(Exception):
+class LecturaError(Exception):
     """Base class for all expected (user-facing) errors."""
 
     default_hint: str = ""
@@ -24,45 +24,45 @@ class LectureLensError(Exception):
         return f"{self.message} {self.hint}".strip()
 
 
-class InvalidYouTubeURLError(LectureLensError):
+class InvalidYouTubeURLError(LecturaError):
     default_hint = "Paste a link like https://www.youtube.com/watch?v=... or https://youtu.be/..."
 
 
-class VideoUnavailableError(LectureLensError):
+class VideoUnavailableError(LecturaError):
     """The video is private, deleted, age-restricted or otherwise unplayable."""
 
     default_hint = UPLOAD_HINT
 
 
-class DownloadFailedError(LectureLensError):
+class DownloadFailedError(LecturaError):
     """yt-dlp could not download the audio (network issue, YouTube bot check, ...)."""
 
     default_hint = UPLOAD_HINT
 
 
-class UnsupportedFileError(LectureLensError):
+class UnsupportedFileError(LecturaError):
     default_hint = "Supported formats: MP3, MP4, WAV, M4A, WEBM, OGG, FLAC, MKV, MOV."
 
 
-class TranscriptionFailedError(LectureLensError):
+class TranscriptionFailedError(LecturaError):
     default_hint = "Check that the file has audible speech, or try a different file."
 
 
-class DependencyMissingError(LectureLensError):
+class DependencyMissingError(LecturaError):
     """A required external program (like ffmpeg) is not installed."""
 
 
-class ConfigurationError(LectureLensError):
+class ConfigurationError(LecturaError):
     """Something is missing from .env (for example an API key)."""
 
     default_hint = "Add the missing value to backend/.env (see .env.example), then restart."
 
 
-class StructuredOutputError(LectureLensError):
+class StructuredOutputError(LecturaError):
     """The LLM kept returning JSON that didn't match the expected format."""
 
     default_hint = "Try again, or switch to a different model/provider in backend/.env."
 
 
-class RateLimitError(LectureLensError):
+class RateLimitError(LecturaError):
     default_hint = "The free API limit was reached. Wait a minute and try again."

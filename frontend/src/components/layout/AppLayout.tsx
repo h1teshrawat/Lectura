@@ -28,7 +28,7 @@ export function AppLayout() {
         <Outlet />
       </motion.main>
       <footer className="border-t border-border py-6 text-center text-xs text-faint">
-        LectureLens · Built with Whisper, open LLMs and RAG · B.Tech AI/ML minor project
+        Lectura · Built with Whisper, open LLMs and RAG · B.Tech AI/ML minor project
       </footer>
     </div>
   );

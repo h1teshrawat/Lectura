@@ -59,7 +59,7 @@ def _friendly_error(exc: Exception) -> Exception:
     if "private video" in text:
         return VideoUnavailableError("This video is private, so it can't be downloaded.")
     if "confirm your age" in text or "age-restricted" in text:
-        return VideoUnavailableError("This video is age-restricted, so LectureLens can't access it.")
+        return VideoUnavailableError("This video is age-restricted, so Lectura can't access it.")
     if "unavailable" in text or "has been removed" in text or "not available" in text:
         return VideoUnavailableError("This video is unavailable (deleted, private or region-locked).")
     if "live event" in text or "premieres" in text:

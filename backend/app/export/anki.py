@@ -17,9 +17,9 @@ from app.transcription.models import format_timestamp
 
 
 def anki_tag(title: str) -> str:
-    """'But what is a neural network?' -> 'LectureLens::but-what-is-a-neural-network'."""
+    """'But what is a neural network?' -> 'Lectura::but-what-is-a-neural-network'."""
     slug = re.sub(r"[^\w]+", "-", title.lower(), flags=re.UNICODE).strip("-")[:60] or "lecture"
-    return f"LectureLens::{slug}"
+    return f"Lectura::{slug}"
 
 
 def flashcards_to_anki_csv(cards: list[Flashcard], lecture_title: str, video_url: str | None = None) -> str:

@@ -31,7 +31,7 @@ class _NotesPDF(FPDF):
         self.set_y(-12)
         self.set_font(self.body_family, "", 8)
         self.set_text_color(*MUTED)
-        self.cell(0, 6, f"LectureLens  ·  page {self.page_no()}", align="C")
+        self.cell(0, 6, f"Lectura  ·  page {self.page_no()}", align="C")
 
 
 def _timestamp_link(video_url: str | None, seconds: float) -> str:
@@ -130,7 +130,7 @@ def notes_to_pdf(
     pdf.set_margins(18, 18, 18)
     pdf.set_auto_page_break(True, margin=18)
     pdf.set_title(notes.title)
-    pdf.set_author("LectureLens")
+    pdf.set_author("Lectura")
     unicode_ok = _register_fonts(pdf, find_fonts())
     w = _Writer(pdf, unicode_ok)
     pdf.add_page()

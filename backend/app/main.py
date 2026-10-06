@@ -19,7 +19,7 @@ from app.api.errors import register_error_handlers
 from app.api.schemas import HealthOut
 from app.config import Settings, get_settings
 from app.db import repository
-from app.db.session import create_db_engine
+from app.db.session import create_db_engine, resolve_db_path
 from app.llm.factory import get_llm
 from app.logging_config import setup_logging
 from app.pipeline.jobs import JobManager, Pipeline
@@ -59,7 +59,7 @@ def create_app(
     async def lifespan(app: FastAPI):
         # --- startup ---
         setup_logging(settings.log_level)
-        engine = create_db_engine(settings.data_path / "lecturelens.db")
+        engine = create_db_engine(resolve_db_path(settings.data_path))
         interrupted = repository.mark_interrupted(engine)
         if interrupted:
             logger.warning("Marked %d interrupted job(s) as failed.", interrupted)
@@ -78,14 +78,14 @@ def create_app(
         embedder = app.state.rag.embedder
         if settings.rag_warmup and hasattr(embedder, "warm_up"):
             threading.Thread(target=embedder.warm_up, name="embedding-warmup", daemon=True).start()
-        logger.info("LectureLens API ready. Docs at /docs")
+        logger.info("Lectura API ready. Docs at /docs")
         yield
         # --- shutdown ---
         app.state.jobs.shutdown()
         engine.dispose()
 
     app = FastAPI(
-        title="LectureLens API",
+        title="Lectura API",
         description="AI lecture summariser: notes, flashcards, quizzes and chat from YouTube or uploaded lectures.",
         version=VERSION,
         lifespan=lifespan,

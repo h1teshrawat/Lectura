@@ -8,7 +8,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-const STORAGE_KEY = "ll-theme";
+const STORAGE_KEY = "lectura-theme";
 
 function initialTheme(): Theme {
   // index.html already applied the right class before React started.

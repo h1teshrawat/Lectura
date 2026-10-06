@@ -19,7 +19,7 @@ import time
 from pathlib import Path
 
 from app.config import get_settings
-from app.errors import LectureLensError
+from app.errors import LecturaError
 from app.generators.markdown import notes_to_markdown
 from app.generators.notes import NotesGenerator
 from app.llm.factory import get_llm
@@ -45,7 +45,7 @@ def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    parser = argparse.ArgumentParser(description="LectureLens notes generation test")
+    parser = argparse.ArgumentParser(description="Lectura notes generation test")
     parser.add_argument("source", help="Transcript .json, YouTube URL or media file")
     parser.add_argument("--provider", choices=["groq", "gemini"], help="Override LLM_PROVIDER")
     parser.add_argument("--model", help="Override the model name")
@@ -69,7 +69,7 @@ def main() -> int:
         )
 
         transcript = result.transcript
-        print("\nLectureLens - notes test")
+        print("\nLectura - notes test")
         print(f"  Lecture:  {result.media.title}")
         print(f"  Words:    {transcript.word_count:,}")
         print(f"  Model:    {llm.label}\n")
@@ -84,7 +84,7 @@ def main() -> int:
             ),
         )
         elapsed = time.perf_counter() - started
-    except LectureLensError as exc:
+    except LecturaError as exc:
         print(f"\nERROR: {exc.message}")
         if exc.hint:
             print(f"  {exc.hint}")

@@ -50,9 +50,9 @@ def test_anki_csv_format() -> None:
     front, back, tag = rows[0]
     assert front == "What is a &quot;neuron&quot;?"          # quotes survive CSV + HTML
     assert "&lt;0..1&gt;" in back and "t=75s" in back       # HTML-escaped answer + timestamp link
-    assert tag == "LectureLens::but-what-is-a-neural-network"
+    assert tag == "Lectura::but-what-is-a-neural-network"
 
 
 def test_anki_tag_has_no_spaces() -> None:
     assert " " not in anki_tag("Lecture with   many spaces!")
-    assert anki_tag("???") == "LectureLens::lecture"
+    assert anki_tag("???") == "Lectura::lecture"

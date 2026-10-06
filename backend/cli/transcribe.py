@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 
 from app.config import get_settings
-from app.errors import LectureLensError
+from app.errors import LecturaError
 from app.logging_config import setup_logging
 from app.transcription.models import format_timestamp
 from app.transcription.service import TranscriptionService
@@ -31,7 +31,7 @@ def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    parser = argparse.ArgumentParser(description="LectureLens transcription test")
+    parser = argparse.ArgumentParser(description="Lectura transcription test")
     parser.add_argument("source", help="YouTube URL/video ID, or path to an audio/video file")
     parser.add_argument("--lang", choices=["auto", "en", "hi", "hinglish"], default="auto",
                         help="Lecture language (default: auto)")
@@ -47,7 +47,7 @@ def main() -> int:
     settings = get_settings()
     setup_logging("DEBUG" if args.verbose else "WARNING")
 
-    print("\nLectureLens - transcription test")
+    print("\nLectura - transcription test")
     print(f"  Input:    {args.source}")
     print(f"  Groq key: {'found' if settings.has_groq else 'not set (local Whisper will be used)'}\n")
 
@@ -67,7 +67,7 @@ def main() -> int:
                 skip_captions=args.skip_captions,
                 on_progress=_print_progress,
             )
-    except LectureLensError as exc:
+    except LecturaError as exc:
         print(f"\nERROR: {exc.message}")
         if exc.hint:
             print(f"  {exc.hint}")

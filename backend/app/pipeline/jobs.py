@@ -20,7 +20,7 @@ from typing import Protocol
 from sqlalchemy import Engine
 
 from app.db import repository
-from app.errors import LectureLensError
+from app.errors import LecturaError
 from app.pipeline.orchestrator import JobRequest, PipelineResult, ReportFn
 from app.pipeline.progress import ProgressStore, overall_progress
 from app.transcription.models import TranscriptionResult
@@ -70,7 +70,7 @@ class JobManager:
                 on_transcribed=lambda transcription: self._save_transcript(lecture_id, transcription),
             )
             self._save_result(lecture_id, result, time.time() - started)
-        except LectureLensError as exc:
+        except LecturaError as exc:
             logger.warning("Lecture %s failed: %s", lecture_id, exc)
             self._fail(lecture_id, exc.message, exc.hint)
         except Exception:  # noqa: BLE001 - any bug must still end the job cleanly

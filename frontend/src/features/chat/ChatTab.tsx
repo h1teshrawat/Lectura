@@ -174,7 +174,7 @@ export function ChatTab({ lecture }: { lecture: LectureDetail }) {
             </span>
             <p className="font-semibold">Ask anything about this lecture</p>
             <p className="mt-1 max-w-sm text-sm text-muted">
-              Ask in English, Hindi or Hinglish. If the lecture doesn't cover something, LectureLens will tell you
+              Ask in English, Hindi or Hinglish. If the lecture doesn't cover something, Lectura will tell you
               instead of making it up.
             </p>
             <div className="mt-6 grid w-full max-w-lg gap-2 sm:grid-cols-2">

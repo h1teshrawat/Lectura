@@ -1,4 +1,4 @@
-# LectureLens backend dependencies.
+# Lectura backend dependencies.
 # This file grows phase by phase, so you only install what the current phase needs.
 
 # --- Core ---

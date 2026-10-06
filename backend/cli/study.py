@@ -16,7 +16,7 @@ from collections import Counter
 from pathlib import Path
 
 from app.config import get_settings
-from app.errors import LectureLensError
+from app.errors import LecturaError
 from app.generators.flashcards import FlashcardGenerator
 from app.generators.quiz import QuizGenerator, select_questions
 from app.generators.schemas import FlashcardDeck, QuestionBank, QuizQuestion
@@ -99,7 +99,7 @@ def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    parser = argparse.ArgumentParser(description="LectureLens flashcards + quiz test")
+    parser = argparse.ArgumentParser(description="Lectura flashcards + quiz test")
     parser.add_argument("transcript", help="Transcript .json saved by `python -m cli.transcribe`")
     parser.add_argument("--provider", choices=["groq", "gemini"], help="Override LLM_PROVIDER")
     parser.add_argument("--model", help="Override the model name")
@@ -126,7 +126,7 @@ def main() -> int:
     stem = result.media.source_id[:16]
     deck_file, bank_file = out_dir / f"{stem}_flashcards.json", out_dir / f"{stem}_quiz.json"
 
-    print(f"\nLectureLens - flashcards & quiz test\n  Lecture: {result.media.title}")
+    print(f"\nLectura - flashcards & quiz test\n  Lecture: {result.media.title}")
 
     if deck_file.exists() and bank_file.exists() and not args.regenerate:
         print("  Using saved results (add --regenerate to create new ones)")
@@ -146,7 +146,7 @@ def main() -> int:
             deck = FlashcardGenerator(llm, **options).generate(result.transcript, on_progress=_progress)
             bank = QuizGenerator(llm, **options).generate(result.transcript, on_progress=_progress)
             elapsed = time.perf_counter() - started
-        except LectureLensError as exc:
+        except LecturaError as exc:
             print(f"\nERROR: {exc.message}")
             if exc.hint:
                 print(f"  {exc.hint}")

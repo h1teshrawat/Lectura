@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="LectureLens turns YouTube lectures and recordings into smart notes, flashcards, quizzes and a chat you can ask questions."
+      content="Lectura turns YouTube lectures and recordings into smart notes, flashcards, quizzes and a chat you can ask questions."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>LectureLens – AI lecture notes, flashcards &amp; quizzes</title>
+    <title>Lectura – AI lecture notes, flashcards &amp; quizzes</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,7 +21,8 @@
     <script>
       (function () {
         try {
-          var saved = localStorage.getItem("ll-theme");
+          // "ll-theme" is the key used before the project was renamed.
+          var saved = localStorage.getItem("lectura-theme") || localStorage.getItem("ll-theme");
           var dark = saved === "dark" || (saved !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
           document.documentElement.classList.toggle("dark", dark);
         } catch (e) {}

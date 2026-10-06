@@ -69,7 +69,7 @@ class LecturePipeline:
         report: ReportFn,
         on_transcribed: Callable[[TranscriptionResult], None] | None = None,
     ) -> PipelineResult:
-        """Process a lecture. Raises LectureLensError subclasses on expected failures."""
+        """Process a lecture. Raises LecturaError subclasses on expected failures."""
         # Create the LLM first: if the API key is missing we fail in a second,
         # not after minutes of transcription.
         llm = self.llm_factory()

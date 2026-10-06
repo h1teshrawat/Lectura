@@ -1,4 +1,4 @@
-/** Small typed client for the LectureLens backend. */
+/** Small typed client for the Lectura backend. */
 
 import type {
   CardProgress,
@@ -52,7 +52,7 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
     if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new ApiError(
       0,
-      "Can't reach the LectureLens server.",
+      "Can't reach the Lectura server.",
       "Start the backend: in backend/ run  uvicorn app.main:app --reload",
     );
   }

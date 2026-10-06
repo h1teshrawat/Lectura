@@ -10,13 +10,13 @@ from fastapi.responses import JSONResponse
 from app.errors import (
     ConfigurationError,
     InvalidYouTubeURLError,
-    LectureLensError,
+    LecturaError,
     RateLimitError,
     UnsupportedFileError,
     VideoUnavailableError,
 )
 
-_STATUS_CODES: dict[type[LectureLensError], int] = {
+_STATUS_CODES: dict[type[LecturaError], int] = {
     InvalidYouTubeURLError: 422,
     UnsupportedFileError: 415,
     VideoUnavailableError: 404,
@@ -31,8 +31,8 @@ def api_error(status_code: int, message: str, hint: str | None = None) -> HTTPEx
 
 
 def register_error_handlers(app: FastAPI) -> None:
-    @app.exception_handler(LectureLensError)
-    async def handle_lecturelens_error(_request: Request, exc: LectureLensError) -> JSONResponse:
+    @app.exception_handler(LecturaError)
+    async def handle_lectura_error(_request: Request, exc: LecturaError) -> JSONResponse:
         status = next((code for cls, code in _STATUS_CODES.items() if isinstance(exc, cls)), 400)
         return JSONResponse(
             status_code=status,

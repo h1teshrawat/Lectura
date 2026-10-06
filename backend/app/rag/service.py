@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from app.config import Settings
-from app.errors import LectureLensError
+from app.errors import LecturaError
 from app.llm.base import ChatMessage, LLMAuthError, LLMError, LLMProvider, LLMRateLimitError
 from app.rag.chunking import build_retrieval_chunks
 from app.rag.embedder import Embedder
@@ -167,7 +167,7 @@ class RAGService:
             })
         except LLMAuthError as exc:
             yield ChatEvent("error", {"message": str(exc), "hint": "Check your API key in backend/.env."})
-        except LectureLensError as exc:
+        except LecturaError as exc:
             yield ChatEvent("error", {"message": exc.message, "hint": exc.hint})
         except LLMError as exc:
             yield ChatEvent("error", {"message": f"The AI model failed to answer: {exc}", "hint": "Try again."})

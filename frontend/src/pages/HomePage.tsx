@@ -73,7 +73,7 @@ export function HomePage() {
             transition={{ delay: 0.1 }}
             className="mt-4 max-w-xl text-base text-pretty text-muted sm:text-lg"
           >
-            Paste a YouTube link or upload a recording. LectureLens transcribes it and builds a study kit with
+            Paste a YouTube link or upload a recording. Lectura transcribes it and builds a study kit with
             timestamps that jump straight to the right moment.
           </motion.p>
           <motion.div

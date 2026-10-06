@@ -1,4 +1,4 @@
-# LectureLens
+# Lectura
 
 AI-powered YouTube/lecture summariser and quiz generator: smart notes with clickable timestamps, flashcards, MCQ quizzes and "chat with the lecture" (RAG). Supports English, Hindi and Hinglish.
 

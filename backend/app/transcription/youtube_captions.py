@@ -118,7 +118,7 @@ def fetch_captions(video_id: str, language: Language = "auto") -> Transcript | N
         ) from exc
     except AgeRestricted as exc:
         raise VideoUnavailableError(
-            "This video is age-restricted, so LectureLens can't access it."
+            "This video is age-restricted, so Lectura can't access it."
         ) from exc
     except VideoUnplayable as exc:
         raise VideoUnavailableError(
