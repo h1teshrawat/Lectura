@@ -7,6 +7,7 @@ never hard-coded in the source.
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -34,6 +35,18 @@ class Settings(BaseSettings):
     local_whisper_compute_type: str = "int8"
     local_whisper_device: str = "cpu"
     audio_segment_seconds: int = 600
+
+    # LLM
+    llm_provider: Literal["groq", "gemini"] = "groq"
+    groq_model: str = "openai/gpt-oss-120b"
+    groq_reasoning_effort: Literal["low", "medium", "high"] = "low"
+    gemini_model: str = "gemini-flash-latest"
+    llm_temperature: float = 0.3
+    llm_max_concurrency: int = 1
+
+    # Notes generation
+    chunk_seconds: int = 300
+    notes_language: str = "english"
 
     # Limits
     long_video_warning_hours: float = 3.0

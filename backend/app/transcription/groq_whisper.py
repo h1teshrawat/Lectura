@@ -16,6 +16,13 @@ logger = logging.getLogger(__name__)
 _NO_SPEECH_THRESHOLD = 0.8
 _LOW_CONFIDENCE_LOGPROB = -1.0
 
+# Groq returns full language names ("english"); the rest of the app uses ISO codes ("en").
+_LANGUAGE_CODES = {
+    "english": "en", "hindi": "hi", "urdu": "ur", "bengali": "bn", "marathi": "mr",
+    "tamil": "ta", "telugu": "te", "gujarati": "gu", "kannada": "kn", "malayalam": "ml",
+    "punjabi": "pa", "nepali": "ne",
+}
+
 
 class GroqWhisperError(Exception):
     """Groq transcription failed. `reason` is a short human-readable explanation."""
@@ -101,4 +108,6 @@ class GroqWhisperTranscriber:
             segments.append(TranscriptSegment(start=0.0, end=0.0, text=data["text"].strip()))
 
         language_out = data.get("language")
-        return segments, language_out.lower() if isinstance(language_out, str) else None
+        if isinstance(language_out, str):
+            language_out = _LANGUAGE_CODES.get(language_out.lower(), language_out.lower())
+        return segments, language_out

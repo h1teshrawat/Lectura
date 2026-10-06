@@ -52,5 +52,17 @@ class DependencyMissingError(LectureLensError):
     """A required external program (like ffmpeg) is not installed."""
 
 
+class ConfigurationError(LectureLensError):
+    """Something is missing from .env (for example an API key)."""
+
+    default_hint = "Add the missing value to backend/.env (see .env.example), then restart."
+
+
+class StructuredOutputError(LectureLensError):
+    """The LLM kept returning JSON that didn't match the expected format."""
+
+    default_hint = "Try again, or switch to a different model/provider in backend/.env."
+
+
 class RateLimitError(LectureLensError):
     default_hint = "The free API limit was reached. Wait a minute and try again."

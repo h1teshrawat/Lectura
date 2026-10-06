@@ -12,5 +12,8 @@ yt-dlp[default]>=2025.11.12  # audio download; [default] adds the YouTube JS-cha
 groq>=0.30                   # Groq API client (Whisper now, Llama in Phase b)
 faster-whisper>=1.1          # offline Whisper fallback (CPU, no PyTorch needed)
 
+# --- Phase (b): LLM providers ---
+google-genai>=1.0            # Google Gemini SDK (Groq uses the `groq` package above)
+
 # --- Dev / tests ---
 pytest>=8.0
