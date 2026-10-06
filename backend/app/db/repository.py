@@ -1,11 +1,11 @@
-"""All database reads and writes in one place (the Repository pattern)."""
+﻿"""All database reads and writes in one place (the Repository pattern)."""
 
 from typing import Any
 
 from sqlalchemy import Engine
 from sqlmodel import Session, col, delete, select
 
-from app.db.models import Lecture, QuizAttempt, utcnow
+from app.db.models import FlashcardReview, Lecture, QuizAttempt, utcnow
 
 ACTIVE_STATUSES = ("queued", "processing")
 
@@ -65,7 +65,38 @@ def update_lecture(engine: Engine, lecture_id: str, **fields: Any) -> None:
 
 def delete_lecture(session: Session, lecture: Lecture) -> None:
     session.exec(delete(QuizAttempt).where(QuizAttempt.lecture_id == lecture.id))  # type: ignore[call-overload]
+    session.exec(delete(FlashcardReview).where(FlashcardReview.lecture_id == lecture.id))  # type: ignore[call-overload]
     session.delete(lecture)
+    session.commit()
+
+
+# ------------------------------------------------------------ flashcards
+
+
+def get_reviews(session: Session, lecture_id: str) -> dict[str, FlashcardReview]:
+    """Spaced-repetition rows for a lecture, keyed by card ID."""
+    rows = session.exec(select(FlashcardReview).where(FlashcardReview.lecture_id == lecture_id))
+    return {row.card_id: row for row in rows}
+
+
+def save_review(session: Session, lecture_id: str, card_id: str, **fields: Any) -> FlashcardReview:
+    """Insert or update one card's review state."""
+    row = session.exec(
+        select(FlashcardReview)
+        .where(FlashcardReview.lecture_id == lecture_id)
+        .where(FlashcardReview.card_id == card_id)
+    ).first() or FlashcardReview(lecture_id=lecture_id, card_id=card_id)
+    for name, value in fields.items():
+        setattr(row, name, value)
+    row.updated_at = utcnow()
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def reset_reviews(session: Session, lecture_id: str) -> None:
+    session.exec(delete(FlashcardReview).where(FlashcardReview.lecture_id == lecture_id))  # type: ignore[call-overload]
     session.commit()
 
 

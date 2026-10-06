@@ -140,6 +140,32 @@ class QuizResult(BaseModel):
     wrong_question_ids: list[str]
 
 
+class CardProgress(BaseModel):
+    """Spaced-repetition state of one flashcard."""
+
+    card_id: str
+    box: int = Field(description="Leitner box 1-5 (0 = never reviewed)")
+    due_at: datetime | None
+    is_due: bool
+    is_mastered: bool
+    reviews: int
+    correct_count: int
+    last_result: Literal["got_it", "again"] | None
+
+
+class FlashcardProgressOut(BaseModel):
+    total: int
+    new: int
+    learning: int
+    mastered: int
+    due_now: int
+    cards: list[CardProgress]
+
+
+class ReviewIn(BaseModel):
+    result: Literal["got_it", "again"]
+
+
 class HealthOut(BaseModel):
     status: str
     version: str

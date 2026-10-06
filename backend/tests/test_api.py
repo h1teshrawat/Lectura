@@ -249,3 +249,31 @@ def test_delete_lecture(client: TestClient) -> None:
     )
     assert client.delete(f"/api/lectures/{lecture_id}").status_code == 204
     assert client.get(f"/api/lectures/{lecture_id}").status_code == 404
+
+
+def test_flashcard_spaced_repetition_flow(client: TestClient) -> None:
+    lecture_id = _create(client)["id"]
+    _wait_until_finished(client, lecture_id)
+    base = f"/api/lectures/{lecture_id}/flashcards"
+
+    progress = client.get(f"{base}/progress").json()
+    assert (progress["total"], progress["new"], progress["due_now"], progress["mastered"]) == (1, 1, 1, 0)
+
+    reviewed = client.post(f"{base}/c1/review", json={"result": "got_it"}).json()
+    assert reviewed["box"] == 2 and reviewed["is_due"] is False
+
+    progress = client.get(f"{base}/progress").json()
+    assert (progress["new"], progress["learning"], progress["due_now"]) == (0, 1, 0)
+
+    again = client.post(f"{base}/c1/review", json={"result": "again"}).json()
+    assert again["box"] == 1 and again["is_due"] is True and again["reviews"] == 2
+
+    assert client.post(f"{base}/c999/review", json={"result": "got_it"}).status_code == 404
+    assert client.post(f"{base}/c1/review", json={"result": "maybe"}).status_code == 422
+
+    assert client.delete(f"{base}/progress").status_code == 204
+    assert client.get(f"{base}/progress").json()["new"] == 1
+
+    # Deleting the lecture also removes its review rows (no foreign-key error).
+    client.post(f"{base}/c1/review", json={"result": "got_it"})
+    assert client.delete(f"/api/lectures/{lecture_id}").status_code == 204

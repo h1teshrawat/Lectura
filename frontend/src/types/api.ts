@@ -116,3 +116,61 @@ export interface Health {
   groq_configured: boolean;
   gemini_configured: boolean;
 }
+
+// ----------------------------------------------------------------- quiz
+
+export type QuizDifficulty = "mixed" | Difficulty;
+
+export interface QuizOut {
+  difficulty: QuizDifficulty;
+  questions: QuizQuestion[];
+}
+
+export interface QuizAnswer {
+  question_id: string;
+  /** null = skipped / time ran out */
+  selected_index: number | null;
+}
+
+export interface QuestionResult {
+  question_id: string;
+  selected_index: number | null;
+  correct_index: number;
+  is_correct: boolean;
+  explanation: string;
+  start_seconds: number;
+}
+
+export interface QuizResult {
+  attempt_id: number;
+  score: number;
+  total: number;
+  percent: number;
+  results: QuestionResult[];
+  wrong_question_ids: string[];
+}
+
+// ----------------------------------------------------------- flashcards
+
+export type ReviewResult = "got_it" | "again";
+
+export interface CardProgress {
+  card_id: string;
+  /** Leitner box 1-5, or 0 if never reviewed */
+  box: number;
+  due_at: string | null;
+  is_due: boolean;
+  is_mastered: boolean;
+  reviews: number;
+  correct_count: number;
+  last_result: ReviewResult | null;
+}
+
+export interface FlashcardProgress {
+  total: number;
+  new: number;
+  learning: number;
+  mastered: number;
+  due_now: number;
+  cards: CardProgress[];
+}

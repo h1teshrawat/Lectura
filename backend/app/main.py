@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from app.api import routes_lectures, routes_quiz
+from app.api import routes_flashcards, routes_lectures, routes_quiz
 from app.api.errors import register_error_handlers
 from app.api.schemas import HealthOut
 from app.config import Settings, get_settings
@@ -74,6 +74,7 @@ def create_app(settings: Settings | None = None, pipeline: Pipeline | None = Non
     register_error_handlers(app)
     app.include_router(routes_lectures.router)
     app.include_router(routes_quiz.router)
+    app.include_router(routes_flashcards.router)
 
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:

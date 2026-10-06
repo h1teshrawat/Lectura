@@ -1,4 +1,4 @@
-"""Database tables (SQLModel = SQLAlchemy tables defined like Pydantic models).
+﻿"""Database tables (SQLModel = SQLAlchemy tables defined like Pydantic models).
 
 Design choice: the generated content (transcript, notes, flashcards, quiz) is
 stored as JSON text columns on the lecture row instead of many separate
@@ -8,11 +8,13 @@ simple while Pydantic still validates it on the way in and out.
 
 from datetime import datetime, timezone
 
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
 
 
 class Lecture(SQLModel, table=True):
@@ -65,3 +67,19 @@ class QuizAttempt(SQLModel, table=True):
     answers_json: str = "[]"
     time_taken_seconds: float | None = None
     created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class FlashcardReview(SQLModel, table=True):
+    """Spaced-repetition progress of one flashcard (Leitner box and next due date)."""
+
+    __table_args__ = (UniqueConstraint("lecture_id", "card_id"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    lecture_id: str = Field(foreign_key="lecture.id", index=True)
+    card_id: str
+    box: int = 1
+    due_at: datetime = Field(default_factory=utcnow)
+    reviews: int = 0
+    correct_count: int = 0
+    last_result: str | None = None
+    updated_at: datetime = Field(default_factory=utcnow)

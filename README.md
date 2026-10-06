@@ -1,17 +1,17 @@
-# LectureLens
+﻿# LectureLens
 
 AI-powered YouTube/lecture summariser and quiz generator: smart notes with clickable timestamps, flashcards, MCQ quizzes and "chat with the lecture" (RAG). Supports English, Hindi and Hinglish.
 
-> 🚧 Work in progress. The full README (architecture, setup, evaluation, deployment) is written in Phase (j).
+> ðŸš§ Work in progress. The full README (architecture, setup, evaluation, deployment) is written in Phase (j).
 
 ## Progress
 
-- [x] **Phase a:** transcription (YouTube captions → Groq Whisper → local faster-whisper)
+- [x] **Phase a:** transcription (YouTube captions â†’ Groq Whisper â†’ local faster-whisper)
 - [x] **Phase b:** LLM layer (Groq / Gemini) + notes (chunking, map-reduce, JSON validation)
 - [x] **Phase c:** flashcards + MCQ question bank with quality checks
 - [x] **Phase d:** FastAPI, background jobs, SSE live progress, SQLite cache
 - [x] **Phase e:** React frontend: home, live processing screen, workspace with notes tab
-- [ ] Phase f: flashcards + quiz UI
+- [x] **Phase f:** flashcards (3D flip, shortcuts, Leitner spaced repetition) + quiz (timer, feedback, results, retry wrong)
 - [ ] Phase g: RAG chat
 - [ ] Phase h: library, stats, export
 - [ ] Phase i: evaluation

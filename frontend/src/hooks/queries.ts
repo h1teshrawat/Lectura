@@ -8,7 +8,15 @@ export const queryKeys = {
   health: ["health"] as const,
   lectures: (search?: string) => ["lectures", search ?? ""] as const,
   lecture: (id: string) => ["lecture", id] as const,
+  flashcardProgress: (id: string) => ["flashcard-progress", id] as const,
 };
+
+export function useFlashcardProgress(lectureId: string) {
+  return useQuery({
+    queryKey: queryKeys.flashcardProgress(lectureId),
+    queryFn: () => api.getFlashcardProgress(lectureId),
+  });
+}
 
 export function useHealth() {
   return useQuery({

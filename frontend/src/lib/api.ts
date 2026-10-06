@@ -1,12 +1,19 @@
 /** Small typed client for the LectureLens backend. */
 
 import type {
+  CardProgress,
+  FlashcardProgress,
   Health,
   LectureCreated,
   LectureDetail,
   LectureLanguage,
   LectureSummary,
   NotesLanguage,
+  QuizAnswer,
+  QuizDifficulty,
+  QuizOut,
+  QuizResult,
+  ReviewResult,
 } from "@/types/api";
 
 export const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
@@ -88,4 +95,31 @@ export const api = {
   },
 
   progressUrl: (id: string) => `${API_BASE}/api/lectures/${id}/progress`,
+
+  // ---- quiz
+  getQuiz: (id: string, options: { count: number; difficulty: QuizDifficulty; ids?: string[] }) => {
+    const params = new URLSearchParams({ count: String(options.count), difficulty: options.difficulty });
+    if (options.ids?.length) params.set("ids", options.ids.join(","));
+    return request<QuizOut>(`/api/lectures/${id}/quiz?${params}`);
+  },
+
+  submitQuiz: (id: string, body: { answers: QuizAnswer[]; difficulty: QuizDifficulty; time_taken_seconds: number }) =>
+    request<QuizResult>(`/api/lectures/${id}/quiz/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+
+  // ---- flashcards
+  getFlashcardProgress: (id: string) => request<FlashcardProgress>(`/api/lectures/${id}/flashcards/progress`),
+
+  reviewCard: (id: string, cardId: string, result: ReviewResult) =>
+    request<CardProgress>(`/api/lectures/${id}/flashcards/${cardId}/review`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ result }),
+    }),
+
+  resetFlashcardProgress: (id: string) =>
+    request<void>(`/api/lectures/${id}/flashcards/progress`, { method: "DELETE" }),
 };

@@ -7,7 +7,9 @@ import type { YouTubePlayer } from "react-youtube";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { FlashcardsTab } from "@/features/flashcards/FlashcardsTab";
 import { NotesTab } from "@/features/notes/NotesTab";
+import { QuizTab } from "@/features/quiz/QuizTab";
 import { PlayerContext, type PlayerControls } from "@/features/workspace/PlayerContext";
 import { VideoPanel } from "@/features/workspace/VideoPanel";
 import { WorkspaceTabs, type TabItem } from "@/features/workspace/WorkspaceTabs";
@@ -91,22 +93,8 @@ export function WorkspacePage() {
               className="pt-6"
             >
               {activeTab === "notes" && <NotesTab notes={lecture.notes} />}
-              {activeTab === "flashcards" && (
-                <ComingSoon
-                  icon={<Layers className="size-6" />}
-                  title={`${lecture.flashcard_count} flashcards are ready`}
-                  phase="f"
-                  description="Flip cards, keyboard shortcuts and spaced repetition arrive in the next update."
-                />
-              )}
-              {activeTab === "quiz" && (
-                <ComingSoon
-                  icon={<ListChecks className="size-6" />}
-                  title={`${lecture.quiz_count} quiz questions are ready`}
-                  phase="f"
-                  description="Timed quizzes with instant feedback and a results review arrive in the next update."
-                />
-              )}
+              {activeTab === "flashcards" && <FlashcardsTab lectureId={lecture.id} cards={lecture.flashcards} />}
+              {activeTab === "quiz" && <QuizTab lectureId={lecture.id} bankSize={lecture.quiz_count} />}
               {activeTab === "chat" && (
                 <ComingSoon
                   icon={<MessageSquare className="size-6" />}

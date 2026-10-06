@@ -91,7 +91,7 @@ Rules:
 4. Never use options like "All of the above", "None of the above" or "Both A and B".
 5. Do not put letters such as "A)" in front of the options.
 6. "answer" must be copied exactly from one of the 4 options.
-7. "explanation": 1-2 sentences on why the answer is correct, based on the lecture.
+7. "explanation": 1-2 sentences on why the answer is correct, based on the lecture. Refer to "the lecture" or "the speaker", never to "the transcript".
 8. "timestamp": the [m:ss] where the answer is discussed, copied from the transcript.
 
 Return JSON in exactly this format:
