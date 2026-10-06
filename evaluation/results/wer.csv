@@ -1,0 +1,4 @@
+﻿Sample,Engine,WER raw (%),WER (%),CER (%),Substitutions,Deletions,Insertions,Reference words,Time (s),Real-time factor
+"Neural networks, first 2 min (English)",Whisper large-v3 (Groq),4.9,2.1,1.7,2,3,3,375,2.12,0.018
+"Neural networks, first 2 min (English)",Whisper large-v3-turbo (Groq),4.7,1.3,1.2,0,3,2,375,1.2,0.01
+"Neural networks, first 2 min (English)","Whisper small (local, int8)",3.3,0.8,0.7,1,0,2,375,19.17,0.163

@@ -1,0 +1,34 @@
+{
+  "systems": [
+    { "name": "gpt-oss-120b (Groq)", "provider": "groq", "model": "openai/gpt-oss-120b" },
+    { "name": "gpt-oss-20b (Groq)", "provider": "groq", "model": "openai/gpt-oss-20b" },
+    { "name": "Gemini Flash", "provider": "gemini", "model": "gemini-flash-latest" }
+  ],
+  "lectures": [
+    {
+      "name": "Neural networks (English)",
+      "lecture_id": "13ee135b564a",
+      "reference_summary": "references/summaries/neural_networks.md"
+    },
+    {
+      "name": "Software engineering (Hindi)",
+      "lecture_id": "2e943d4aa452",
+      "reference_summary": "references/summaries/software_engineering_hindi.md"
+    }
+  ],
+  "wer_samples": [
+    {
+      "name": "Neural networks, first 2 min (English)",
+      "youtube": "https://www.youtube.com/watch?v=aircAruvnKk",
+      "seconds": 117.5,
+      "language": "en",
+      "reference": "references/transcripts/neural_networks_first_2min.txt",
+      "reference_source": "Manual (human-written) English captions uploaded by 3Blue1Brown"
+    }
+  ],
+  "wer_engines": [
+    { "name": "Whisper large-v3 (Groq)", "engine": "groq", "model": "whisper-large-v3" },
+    { "name": "Whisper large-v3-turbo (Groq)", "engine": "groq", "model": "whisper-large-v3-turbo" },
+    { "name": "Whisper small (local, int8)", "engine": "local", "model": "small" }
+  ]
+}

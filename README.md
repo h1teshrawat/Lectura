@@ -14,7 +14,7 @@ AI-powered YouTube/lecture summariser and quiz generator: smart notes with click
 - [x] **Phase f:** flashcards (3D flip, shortcuts, Leitner spaced repetition) + quiz (timer, feedback, results, retry wrong)
 - [x] **Phase g:** RAG chat: multilingual embeddings, ChromaDB, grounded streaming answers with timestamp citations
 - [x] **Phase h:** library (search, sort, delete), stats dashboard (Recharts), export (PDF, Markdown, Anki CSV)
-- [ ] Phase i: evaluation
+- [x] **Phase i:** evaluation: ROUGE vs human references, LLM comparison, Whisper WER/CER (see `evaluation/`)
 - [ ] Phase j: polish, README, deployment
 
 ## Quick start (backend, Windows PowerShell)

@@ -1,0 +1,5 @@
+﻿system,lecture,wall_seconds,api_seconds,llm_calls,prompt_tokens,completion_tokens,sections,mcq_generated,mcq_valid
+gpt-oss-120b (Groq),Neural networks (English),87.8,87.7,9,13411,5519,11,24,24
+gpt-oss-20b (Groq),Neural networks (English),76.9,76.9,9,13465,4467,11,24,24
+gpt-oss-120b (Groq),Software engineering (Hindi),41.1,41.0,7,8597,4747,9,24,24
+gpt-oss-20b (Groq),Software engineering (Hindi),48.6,48.6,7,8606,3332,9,24,22

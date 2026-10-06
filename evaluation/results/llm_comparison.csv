@@ -1,0 +1,3 @@
+﻿System,Lectures,Avg API time (s),Avg wall time (s),Avg tokens,MCQs valid / generated,MCQ validity (%),ROUGE-1 F1,ROUGE-2 F1,ROUGE-L F1
+gpt-oss-120b (Groq),2,64.3,64.5,16137,48/48,100.0,-,-,-
+gpt-oss-20b (Groq),2,62.8,62.8,14935,46/48,95.8,-,-,-

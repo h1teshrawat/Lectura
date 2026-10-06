@@ -1,0 +1,5 @@
+# Extra packages for the evaluation scripts (install into the backend venv):
+#   backend\.venv\Scripts\python -m pip install -r evaluation\requirements.txt
+rouge-score>=0.1.2   # ROUGE-1/2/L summary metrics
+jiwer>=3.0           # Word / Character Error Rate for transcription
+matplotlib>=3.8      # charts for the report
