@@ -109,6 +109,12 @@
   button:disabled {
     cursor: not-allowed;
   }
+  /* Native dropdown lists are drawn by the operating system. Without explicit
+     colours, Windows shows a white list with the page's (light) dark-mode text. */
+  select option {
+    background-color: var(--surface);
+    color: var(--fg);
+  }
 }
 
 /* Highlighted key terms inside notes. */

@@ -29,7 +29,7 @@ export function SelectField<T extends string>({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="absolute inset-0 cursor-pointer opacity-0"
+        className="absolute inset-0 cursor-pointer bg-surface text-fg opacity-0"
         aria-label={label}
       >
         {options.map((option) => (
