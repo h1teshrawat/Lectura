@@ -15,5 +15,11 @@ faster-whisper>=1.1          # offline Whisper fallback (CPU, no PyTorch needed)
 # --- Phase (b): LLM providers ---
 google-genai>=1.0            # Google Gemini SDK (Groq uses the `groq` package above)
 
+# --- Phase (d): web API + database ---
+fastapi>=0.115
+uvicorn[standard]>=0.30      # the web server that runs FastAPI
+sqlmodel>=0.0.22             # SQLite database models (SQLAlchemy + Pydantic)
+python-multipart>=0.0.9      # needed for file uploads
+
 # --- Dev / tests ---
 pytest>=8.0

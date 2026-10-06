@@ -50,6 +50,13 @@ class Settings(BaseSettings):
 
     # Limits
     long_video_warning_hours: float = 3.0
+    max_upload_mb: int = 500
+
+    # Web server
+    # How many lectures to process at the same time (1 is safest on free API tiers)
+    max_parallel_jobs: int = 1
+    # Websites allowed to call the API (the Vite dev server by default)
+    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     # General
     data_dir: Path = Path("data")

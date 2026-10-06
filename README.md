@@ -9,7 +9,7 @@ AI-powered YouTube/lecture summariser and quiz generator: smart notes with click
 - [x] **Phase a:** transcription (YouTube captions → Groq Whisper → local faster-whisper)
 - [x] **Phase b:** LLM layer (Groq / Gemini) + notes (chunking, map-reduce, JSON validation)
 - [x] **Phase c:** flashcards + MCQ question bank with quality checks
-- [ ] Phase d: FastAPI, background jobs, SSE, SQLite cache
+- [x] **Phase d:** FastAPI, background jobs, SSE live progress, SQLite cache
 - [ ] Phase e: React frontend (home, processing, notes)
 - [ ] Phase f: flashcards + quiz UI
 - [ ] Phase g: RAG chat
@@ -29,6 +29,7 @@ python -m pytest
 python -m cli.transcribe https://www.youtube.com/watch?v=aircAruvnKk
 python -m cli.notes data\transcripts\aircAruvnKk.json
 python -m cli.study data\transcripts\aircAruvnKk.json --play
+uvicorn app.main:app --reload      # API server -> http://127.0.0.1:8000/docs
 ```
 
 Requires Python 3.11, ffmpeg (`winget install Gyan.FFmpeg`) and Node.js (used by yt-dlp for YouTube downloads).
