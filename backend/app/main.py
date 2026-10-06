@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from app.api import routes_chat, routes_flashcards, routes_lectures, routes_quiz
+from app.api import routes_chat, routes_export, routes_flashcards, routes_lectures, routes_quiz, routes_stats
 from app.api.errors import register_error_handlers
 from app.api.schemas import HealthOut
 from app.config import Settings, get_settings
@@ -103,6 +103,8 @@ def create_app(
     app.include_router(routes_quiz.router)
     app.include_router(routes_flashcards.router)
     app.include_router(routes_chat.router)
+    app.include_router(routes_export.router)
+    app.include_router(routes_stats.router)
 
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:

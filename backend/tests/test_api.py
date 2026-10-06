@@ -294,6 +294,49 @@ def test_flashcard_spaced_repetition_flow(client: TestClient) -> None:
     assert client.delete(f"/api/lectures/{lecture_id}").status_code == 204
 
 
+def test_export_endpoints(client: TestClient) -> None:
+    lecture_id = _create(client)["id"]
+    _wait_until_finished(client, lecture_id)
+    url = f"/api/lectures/{lecture_id}/export"
+
+    pdf = client.get(url, params={"format": "pdf"})
+    assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF-")
+    assert pdf.headers["content-type"] == "application/pdf"
+    assert 'filename="Neural-networks-notes.pdf"' in pdf.headers["content-disposition"]
+
+    md = client.get(url, params={"format": "md"})
+    assert md.status_code == 200 and "# Neural Networks" in md.text and "> Source: Neural networks" in md.text
+
+    anki = client.get(url, params={"format": "csv"})
+    assert anki.status_code == 200 and anki.text.startswith("#separator:comma")
+    assert "flashcards.csv" in anki.headers["content-disposition"]
+
+    assert client.get(url, params={"format": "docx"}).status_code == 422
+
+
+def test_stats_dashboard(client: TestClient) -> None:
+    empty = client.get("/api/stats").json()
+    assert empty["totals"]["quizzes_taken"] == 0 and empty["totals"]["average_percent"] is None
+    assert len(empty["activity"]) == 14
+
+    lecture_id = _create(client)["id"]
+    _wait_until_finished(client, lecture_id)
+    for correct in (2, 1):  # two quizzes: 2/2 and 1/2
+        answers = [{"question_id": f"q{i}", "selected_index": i % 4 if i <= correct else (i + 1) % 4} for i in (1, 2)]
+        client.post(f"/api/lectures/{lecture_id}/quiz/submit", json={"answers": answers})
+    client.post(f"/api/lectures/{lecture_id}/flashcards/c1/review", json={"result": "got_it"})
+
+    stats = client.get("/api/stats", params={"tz_offset_minutes": 330}).json()
+    totals = stats["totals"]
+    assert (totals["lectures"], totals["quizzes_taken"], totals["questions_answered"]) == (1, 2, 4)
+    assert totals["average_percent"] == 75.0 and totals["best_percent"] == 100.0
+    assert totals["cards_reviewed"] == 1 and totals["flashcards_total"] == 1
+    assert [p["percent"] for p in stats["score_history"]] == [100.0, 50.0]
+    assert stats["activity"][-1]["questions_answered"] == 4 and stats["activity"][-1]["cards_reviewed"] == 1
+    assert {b["label"]: b["count"] for b in stats["box_distribution"]}["Box 2"] == 1
+    assert stats["lectures"][0]["quizzes"] == 2 and stats["lectures"][0]["last_percent"] == 50.0
+
+
 def _chat(client: TestClient, lecture_id: str, message: str) -> list[tuple[str, dict]]:
     """Send a chat message and parse the Server-Sent Events into (event, data) pairs."""
     with client.stream("POST", f"/api/lectures/{lecture_id}/chat", json={"message": message}) as response:

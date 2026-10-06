@@ -194,6 +194,45 @@ export interface ChatEntry {
   created_at: string;
 }
 
+// ---------------------------------------------------------------- stats
+
+export interface Stats {
+  totals: {
+    lectures: number;
+    quizzes_taken: number;
+    questions_answered: number;
+    average_percent: number | null;
+    best_percent: number | null;
+    flashcards_total: number;
+    flashcards_mastered: number;
+    cards_reviewed: number;
+  };
+  score_history: {
+    attempt_id: number;
+    taken_at: string;
+    percent: number;
+    score: number;
+    total: number;
+    difficulty: string;
+    lecture_id: string;
+    lecture_title: string;
+  }[];
+  activity: { date: string; questions_answered: number; cards_reviewed: number }[];
+  box_distribution: { label: string; box: number; count: number }[];
+  lectures: {
+    lecture_id: string;
+    title: string;
+    thumbnail_url: string | null;
+    quizzes: number;
+    average_percent: number | null;
+    last_percent: number | null;
+    flashcards_total: number;
+    flashcards_mastered: number;
+  }[];
+}
+
+export type ExportFormat = "pdf" | "md" | "csv";
+
 /** Events streamed back while an answer is generated. */
 export type ChatStreamEvent =
   | { type: "status"; data: { message: string } }

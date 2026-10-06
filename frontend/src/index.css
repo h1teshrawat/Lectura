@@ -52,6 +52,11 @@
   --warning: #a35200;
   --warning-soft: #fff3e0;
   --highlight: #fff0a8;
+  /* Chart palette (validated for colour-blind separation on this surface) */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-grid: #e8e6e1;
+  --chart-axis: #898781;
   color-scheme: light;
 }
 
@@ -75,6 +80,10 @@
   --warning: #ffb224;
   --warning-soft: #2f210a;
   --highlight: #4d4216;
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-grid: #29292f;
+  --chart-axis: #898781;
   color-scheme: dark;
 }
 

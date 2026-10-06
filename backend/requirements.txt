@@ -25,5 +25,9 @@ python-multipart>=0.0.9      # needed for file uploads
 sentence-transformers>=3.0   # text embeddings (installs PyTorch, CPU is fine)
 chromadb>=1.0                # local vector database
 
+# --- Phase (h): export ---
+fpdf2>=2.8                   # PDF generation
+uharfbuzz>=0.40              # text shaping, so Hindi (Devanagari) renders correctly in PDFs
+
 # --- Dev / tests ---
 pytest>=8.0

@@ -3,6 +3,7 @@
 import type {
   CardProgress,
   ChatEntry,
+  ExportFormat,
   FlashcardProgress,
   Health,
   LectureCreated,
@@ -15,6 +16,7 @@ import type {
   QuizOut,
   QuizResult,
   ReviewResult,
+  Stats,
 } from "@/types/api";
 
 export const API_BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
@@ -129,6 +131,14 @@ export const api = {
 
   resetFlashcardProgress: (id: string) =>
     request<void>(`/api/lectures/${id}/flashcards/progress`, { method: "DELETE" }),
+
+  deleteLecture: (id: string) => request<void>(`/api/lectures/${id}`, { method: "DELETE" }),
+
+  /** A plain link: the server answers with "Content-Disposition: attachment", so the browser downloads it. */
+  exportUrl: (id: string, format: ExportFormat) => `${API_BASE}/api/lectures/${id}/export?format=${format}`,
+
+  // The offset lets the server group activity by *your* local day.
+  getStats: () => request<Stats>(`/api/stats?tz_offset_minutes=${-new Date().getTimezoneOffset()}`),
 
   // ---- chat (sending a message streams: see features/chat/streamChat.ts)
   getChat: (id: string) => request<ChatEntry[]>(`/api/lectures/${id}/chat`),

@@ -40,6 +40,22 @@ export function useLecture(id: string | undefined) {
   });
 }
 
+export function useStats() {
+  return useQuery({ queryKey: ["stats"], queryFn: api.getStats, staleTime: 0 });
+}
+
+export function useDeleteLecture() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteLecture(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["lectures"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.removeQueries({ queryKey: queryKeys.lecture(id) });
+    },
+  });
+}
+
 export function useCreateLecture() {
   const queryClient = useQueryClient();
   return useMutation({

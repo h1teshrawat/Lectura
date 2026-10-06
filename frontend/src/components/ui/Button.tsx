@@ -1,5 +1,5 @@
 import { LoaderCircle } from "lucide-react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
 
@@ -10,7 +10,7 @@ const VARIANTS: Record<Variant, string> = {
   primary: "bg-accent text-accent-fg hover:bg-accent-hover shadow-sm",
   secondary: "bg-surface text-fg border border-border hover:bg-subtle hover:border-border-strong",
   ghost: "text-muted hover:text-fg hover:bg-subtle",
-  danger: "bg-danger-soft text-danger hover:brightness-95",
+  danger: "bg-danger text-white shadow-sm hover:brightness-110",
 };
 
 const SIZES: Record<Size, string> = {
@@ -19,7 +19,8 @@ const SIZES: Record<Size, string> = {
   lg: "h-12 px-5 text-base gap-2 rounded-xl",
 };
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// ComponentProps<"button"> includes `ref` (in React 19 a ref is a normal prop).
+interface ButtonProps extends ComponentProps<"button"> {
   variant?: Variant;
   size?: Size;
   loading?: boolean;

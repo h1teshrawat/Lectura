@@ -80,6 +80,19 @@ class ChatEntry(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utcnow)
 
 
+class ReviewLog(SQLModel, table=True):
+    """Every single flashcard review (FlashcardReview only keeps the latest state).
+
+    Used for the "study activity" chart on the stats dashboard.
+    """
+
+    id: int | None = Field(default=None, primary_key=True)
+    lecture_id: str = Field(foreign_key="lecture.id", index=True)
+    card_id: str
+    result: str  # "got_it" | "again"
+    created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
 class FlashcardReview(SQLModel, table=True):
     """Spaced-repetition progress of one flashcard (Leitner box and next due date)."""
 

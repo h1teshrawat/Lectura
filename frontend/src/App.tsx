@@ -2,8 +2,10 @@ import { Route, Routes } from "react-router";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { HomePage } from "@/pages/HomePage";
-import { LibraryPage, NotFoundPage, StatsPage } from "@/pages/PlaceholderPages";
+import { LibraryPage } from "@/pages/LibraryPage";
+import { NotFoundPage } from "@/pages/PlaceholderPages";
 import { ProcessingPage } from "@/pages/ProcessingPage";
+import { StatsPage } from "@/pages/StatsPage";
 import { WorkspacePage } from "@/pages/WorkspacePage";
 
 export function App() {

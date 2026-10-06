@@ -2,6 +2,7 @@ import { AudioLines, Bot, Captions, Clock, ExternalLink, Languages, TriangleAler
 import YouTube, { type YouTubePlayer } from "react-youtube";
 
 import { Badge } from "@/components/ui/Badge";
+import { ExportMenu } from "@/features/export/ExportMenu";
 import { formatDuration, formatRelativeDate } from "@/lib/format";
 import type { LectureDetail } from "@/types/api";
 
@@ -63,6 +64,9 @@ export function VideoPanel({ lecture, onPlayerReady }: {
           {lecture.llm_model && (
             <Badge icon={<Bot className="size-3" />}>{lecture.llm_model.split(":").pop()}</Badge>
           )}
+        </div>
+        <div className="mt-4">
+          <ExportMenu lectureId={lecture.id} />
         </div>
         {lecture.warnings.map((warning) => (
           <p key={warning} className="mt-3 flex gap-2 rounded-xl bg-warning-soft px-3 py-2.5 text-xs text-warning">
