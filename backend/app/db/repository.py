@@ -1,4 +1,4 @@
-﻿"""All database reads and writes in one place (the Repository pattern)."""
+"""All database reads and writes in one place (the Repository pattern)."""
 
 from typing import Any
 

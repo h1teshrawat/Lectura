@@ -1,4 +1,4 @@
-﻿import { ListChecks, Play, Timer } from "lucide-react";
+import { ListChecks, Play, Timer } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/Button";

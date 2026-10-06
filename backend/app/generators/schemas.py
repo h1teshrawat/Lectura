@@ -1,4 +1,4 @@
-﻿"""Pydantic models for generated notes.
+"""Pydantic models for generated notes.
 
 There are two kinds of models here:
 - *Draft* models describe exactly what we ask the LLM to return. They are

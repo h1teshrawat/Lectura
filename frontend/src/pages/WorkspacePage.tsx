@@ -1,4 +1,4 @@
-﻿import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Layers, ListChecks, MessageSquare } from "lucide-react";
 import { useCallback, useMemo, useRef, type ReactNode } from "react";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router";

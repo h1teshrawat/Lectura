@@ -1,4 +1,4 @@
-﻿"""Flashcard spaced-repetition endpoints."""
+"""Flashcard spaced-repetition endpoints."""
 
 import json
 

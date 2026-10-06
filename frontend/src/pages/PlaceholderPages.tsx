@@ -1,4 +1,4 @@
-﻿import { ChartColumn, Compass, Library } from "lucide-react";
+import { ChartColumn, Compass, Library } from "lucide-react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
 

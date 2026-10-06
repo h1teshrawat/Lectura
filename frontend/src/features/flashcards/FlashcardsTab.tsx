@@ -1,4 +1,4 @@
-﻿import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Layers, PartyPopper, RotateCcw, Shuffle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -141,7 +141,7 @@ export function FlashcardsTab({ lectureId, cards }: { lectureId: string; cards: 
               {progress.mastered} of {progress.total} mastered
             </p>
             <p className="mt-0.5 text-xs text-muted">
-              {progress.new} new Â· {progress.learning} learning Â· {progress.due_now} due now
+              {progress.new} new · {progress.learning} learning · {progress.due_now} due now
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export function FlashcardsTab({ lectureId, cards }: { lectureId: string; cards: 
               <motion.div className="h-full bg-accent" animate={{ width: `${sessionPercent}%` }} />
             </div>
             <span className="tabular-nums">
-              <span className="text-success">âœ“ {stats.gotIt}</span> Â· <span className="text-warning">â†» {stats.again}</span>
+              <span className="text-success">✓ {stats.gotIt}</span> · <span className="text-warning">↻ {stats.again}</span>
             </span>
           </div>
 
@@ -253,7 +253,7 @@ export function FlashcardsTab({ lectureId, cards }: { lectureId: string; cards: 
 
           <p className="hidden items-center justify-center gap-3 text-xs text-faint sm:flex">
             <span className="flex items-center gap-1"><Kbd>Space</Kbd> flip</span>
-            <span className="flex items-center gap-1"><Kbd>â†</Kbd><Kbd>â†’</Kbd> navigate</span>
+            <span className="flex items-center gap-1"><Kbd>←</Kbd><Kbd>→</Kbd> navigate</span>
             <span className="flex items-center gap-1"><Kbd>1</Kbd> review again</span>
             <span className="flex items-center gap-1"><Kbd>2</Kbd> got it</span>
           </p>

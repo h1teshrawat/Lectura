@@ -1,4 +1,4 @@
-﻿"""Database tables (SQLModel = SQLAlchemy tables defined like Pydantic models).
+"""Database tables (SQLModel = SQLAlchemy tables defined like Pydantic models).
 
 Design choice: the generated content (transcript, notes, flashcards, quiz) is
 stored as JSON text columns on the lecture row instead of many separate
