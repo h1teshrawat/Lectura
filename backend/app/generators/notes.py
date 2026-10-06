@@ -182,7 +182,22 @@ class NotesGenerator(ChunkedGenerator):
         """Summarise lines; if they're too long, summarise batches first (recursively)."""
         total_words = sum(len(line.split()) for line in lines)
         if total_words <= _REDUCE_MAX_WORDS or len(lines) <= 2:
-            return self._ask(NOTES_REDUCE_USER.format(title_hint=title_hint, sections="\n".join(lines)), SummaryDraft)
+            # Short lectures get a short summary (a 1-minute clip shouldn't get 8 takeaways).
+            if len(lines) <= 2:
+                overview_sentences, takeaways = "1-2", "2 to 3"
+            elif len(lines) <= 5:
+                overview_sentences, takeaways = "3-4", "3 to 5"
+            else:
+                overview_sentences, takeaways = "4-6", "5 to 8"
+            return self._ask(
+                NOTES_REDUCE_USER.format(
+                    title_hint=title_hint,
+                    sections="\n".join(lines),
+                    overview_sentences=overview_sentences,
+                    takeaways=takeaways,
+                ),
+                SummaryDraft,
+            )
 
         # Hierarchical reduce: summarise groups of sections, then summarise the summaries.
         batches: list[list[str]] = [[]]

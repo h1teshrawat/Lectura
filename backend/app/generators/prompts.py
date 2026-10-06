@@ -51,8 +51,10 @@ NOTES_REDUCE_USER = """Below are the section summaries of a lecture{title_hint},
 
 Using ONLY this information, return JSON in exactly this format:
 {{"title": "a clear title for the whole lecture (at most 12 words)",
-  "overview": "a 4-6 sentence overview of what the whole lecture covers",
-  "key_takeaways": ["5 to 8 of the most important takeaways, one sentence each"]}}"""
+  "overview": "a {overview_sentences} sentence overview of what the whole lecture covers",
+  "key_takeaways": ["{takeaways} of the most important takeaways, one sentence each"]}}
+
+Keep it proportional to the content: never pad or repeat the same point in different words."""
 
 FLASHCARDS_MAP_USER = """This is part {part} of {total_parts} of a lecture transcript, covering {start} to {end}.
 Each line starts with a [m:ss] timestamp.
