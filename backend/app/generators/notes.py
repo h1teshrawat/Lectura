@@ -12,20 +12,10 @@ REDUCE: send just the section titles + summaries (much shorter than the
 """
 
 import logging
-import re
-from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from difflib import SequenceMatcher
 
-from app.errors import StructuredOutputError
-from app.generators.chunking import Chunk, chunk_transcript
-from app.generators.prompts import (
-    LANGUAGE_INSTRUCTIONS,
-    NOTES_MAP_USER,
-    NOTES_REDUCE_PARTIAL_USER,
-    NOTES_REDUCE_USER,
-    NOTES_SYSTEM,
-)
+from app.generators.base import ChunkedGenerator, ProgressFn, parse_timestamp, resolve_timestamp
+from app.generators.chunking import Chunk
+from app.generators.prompts import NOTES_MAP_USER, NOTES_REDUCE_PARTIAL_USER, NOTES_REDUCE_USER
 from app.generators.schemas import (
     ChunkNotesDraft,
     Definition,
@@ -33,46 +23,20 @@ from app.generators.schemas import (
     NoteSection,
     SummaryDraft,
 )
-from app.llm.base import ChatMessage, LLMProvider
-from app.llm.structured import generate_structured
+from app.generators.text_utils import dedupe_texts, normalise, same_numbers, similarity
 from app.transcription.models import Transcript, format_timestamp
 
 logger = logging.getLogger(__name__)
 
-ProgressFn = Callable[[str, float | None], None]  # (message, fraction 0..1)
+__all__ = ["NotesGenerator", "build_glossary", "dedupe_texts", "merge_sections", "parse_timestamp"]
 
 # Reduce input above this many words is summarised in batches first.
 _REDUCE_MAX_WORDS = 2500
 # Titles at least this similar are treated as the same topic.
 _SAME_TOPIC_SIMILARITY = 0.75
-# Bullet points at least this similar are treated as duplicates.
-_DUPLICATE_POINT_SIMILARITY = 0.85
 
 
 # ------------------------------------------------------------------ helpers
-
-
-def parse_timestamp(value: str | float | int | None) -> float | None:
-    """Convert '12:30', '[1:02:05]' or 750 into seconds. Returns None if unparseable."""
-    if value is None:
-        return None
-    if isinstance(value, (int, float)):
-        return float(value) if value >= 0 else None
-    match = re.search(r"(\d+(?::\d{1,2}){0,2})", str(value))
-    if not match:
-        return None
-    seconds = 0.0
-    for part in match.group(1).split(":"):
-        seconds = seconds * 60 + int(part)
-    return seconds
-
-
-def _normalise(text: str) -> str:
-    return re.sub(r"[^\w\s]", "", text.casefold()).strip()
-
-
-def _similar(a: str, b: str) -> float:
-    return SequenceMatcher(None, _normalise(a), _normalise(b)).ratio()
 
 
 def _same_topic(title_a: str, title_b: str) -> bool:
@@ -81,18 +45,7 @@ def _same_topic(title_a: str, title_b: str) -> bool:
     Titles with different numbers ("Example 1" vs "Example 2") are never the
     same topic, even though the strings are very similar.
     """
-    if re.findall(r"\d+", title_a) != re.findall(r"\d+", title_b):
-        return False
-    return _similar(title_a, title_b) >= _SAME_TOPIC_SIMILARITY
-
-
-def dedupe_texts(items: list[str], threshold: float = _DUPLICATE_POINT_SIMILARITY) -> list[str]:
-    """Remove items that are (nearly) identical to an earlier item."""
-    kept: list[str] = []
-    for item in items:
-        if not any(_similar(item, existing) >= threshold for existing in kept):
-            kept.append(item)
-    return kept
+    return same_numbers(title_a, title_b) and similarity(title_a, title_b) >= _SAME_TOPIC_SIMILARITY
 
 
 def dedupe_definitions(definitions: list[Definition]) -> list[Definition]:
@@ -100,7 +53,7 @@ def dedupe_definitions(definitions: list[Definition]) -> list[Definition]:
     seen: set[str] = set()
     kept: list[Definition] = []
     for definition in definitions:
-        key = _normalise(definition.term)
+        key = normalise(definition.term)
         if key and key not in seen:
             seen.add(key)
             kept.append(definition)
@@ -140,25 +93,8 @@ def build_glossary(sections: list[NoteSection]) -> list[Definition]:
 # ---------------------------------------------------------------- generator
 
 
-class NotesGenerator:
+class NotesGenerator(ChunkedGenerator):
     """Generates `LectureNotes` from a transcript using map-reduce."""
-
-    def __init__(
-        self,
-        llm: LLMProvider,
-        output_language: str = "english",
-        chunk_seconds: int = 300,
-        max_workers: int = 1,
-        temperature: float = 0.3,
-    ) -> None:
-        self.llm = llm
-        self.output_language = output_language if output_language in LANGUAGE_INSTRUCTIONS else "english"
-        self.chunk_seconds = chunk_seconds
-        self.max_workers = max(1, max_workers)
-        self.temperature = temperature
-        self.system_prompt = NOTES_SYSTEM.format(
-            language_instruction=LANGUAGE_INSTRUCTIONS[self.output_language]
-        )
 
     def generate(
         self,
@@ -174,13 +110,17 @@ class NotesGenerator:
             on_progress: Optional callback (message, fraction).
         """
         report = on_progress or (lambda message, fraction: None)
-        chunks = chunk_transcript(transcript.segments, target_seconds=self.chunk_seconds)
-        if not chunks:
-            raise StructuredOutputError("The transcript is empty, so there is nothing to summarise.")
+        chunks = self._chunks(transcript)
         logger.info("Notes: %d chunk(s) of ~%ds with %s", len(chunks), self.chunk_seconds, self.llm.label)
 
         # MAP
-        sections = self._map(chunks, report)
+        sections = self._map(
+            chunks,
+            lambda chunk: self._map_chunk(chunk, len(chunks)),
+            report,
+            label="Summarising",
+            progress_share=0.9,
+        )
         # MERGE
         sections = merge_sections(sections)
         # REDUCE
@@ -199,57 +139,26 @@ class NotesGenerator:
 
     # -- map ------------------------------------------------------------------
 
-    def _map(self, chunks: list[Chunk], report: ProgressFn) -> list[NoteSection]:
-        results: dict[int, list[NoteSection]] = {}
-        failures = 0
-        report(f"Summarising part 1 of {len(chunks)}...", 0.0)
-
-        with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
-            futures = {pool.submit(self._map_chunk, chunk, len(chunks)): chunk for chunk in chunks}
-            for done, future in enumerate(as_completed(futures), start=1):
-                chunk = futures[future]
-                try:
-                    results[chunk.index] = future.result()
-                except StructuredOutputError as exc:
-                    # One bad chunk shouldn't ruin the whole lecture.
-                    failures += 1
-                    logger.error("Skipping part %d: %s", chunk.index + 1, exc)
-                report(f"Summarised part {done} of {len(chunks)}", 0.9 * done / len(chunks))
-
-        if failures > len(chunks) // 2:
-            raise StructuredOutputError(
-                f"Notes generation failed for {failures} of {len(chunks)} parts of the lecture."
-            )
-        return [section for index in sorted(results) for section in results[index]]
-
     def _map_chunk(self, chunk: Chunk, total_chunks: int) -> list[NoteSection]:
         max_sections = 3 if chunk.end - chunk.start > 120 else 2
-        prompt = NOTES_MAP_USER.format(
-            part=chunk.index + 1,
-            total_parts=total_chunks,
-            start=format_timestamp(chunk.start),
-            end=format_timestamp(chunk.end),
-            max_sections=max_sections,
-            transcript=chunk.to_prompt_text(),
-        )
-        draft = generate_structured(
-            self.llm,
-            [ChatMessage("system", self.system_prompt), ChatMessage("user", prompt)],
+        draft = self._ask(
+            NOTES_MAP_USER.format(
+                part=chunk.index + 1,
+                total_parts=total_chunks,
+                start=format_timestamp(chunk.start),
+                end=format_timestamp(chunk.end),
+                max_sections=max_sections,
+                transcript=chunk.to_prompt_text(),
+            ),
             ChunkNotesDraft,
-            temperature=self.temperature,
         )
 
         sections: list[NoteSection] = []
         previous_start = chunk.start
         for item in draft.sections[:max_sections]:
-            # Keep timestamps inside this chunk and in increasing order, even if
-            # the model copied a wrong or made-up time.
-            seconds = parse_timestamp(item.timestamp)
-            if seconds is None or not chunk.start - 1 <= seconds <= chunk.end + 1:
-                seconds = previous_start
-            seconds = max(seconds, previous_start)
+            # Keep timestamps inside this chunk and in increasing order.
+            seconds = max(resolve_timestamp(item.timestamp, chunk, previous_start), previous_start)
             previous_start = seconds
-
             sections.append(
                 NoteSection(
                     title=item.title.strip(),
@@ -265,9 +174,7 @@ class NotesGenerator:
     # -- reduce ---------------------------------------------------------------
 
     def _reduce(self, sections: list[NoteSection], title_hint: str | None) -> SummaryDraft:
-        lines = [
-            f"[{format_timestamp(s.start_seconds)}] {s.title}: {s.summary}" for s in sections
-        ]
+        lines = [f"[{format_timestamp(s.start_seconds)}] {s.title}: {s.summary}" for s in sections]
         hint = f' titled "{title_hint}"' if title_hint else ""
         return self._reduce_lines(lines, hint)
 
@@ -275,7 +182,7 @@ class NotesGenerator:
         """Summarise lines; if they're too long, summarise batches first (recursively)."""
         total_words = sum(len(line.split()) for line in lines)
         if total_words <= _REDUCE_MAX_WORDS or len(lines) <= 2:
-            return self._call_reduce(NOTES_REDUCE_USER, lines, title_hint)
+            return self._ask(NOTES_REDUCE_USER.format(title_hint=title_hint, sections="\n".join(lines)), SummaryDraft)
 
         # Hierarchical reduce: summarise groups of sections, then summarise the summaries.
         batches: list[list[str]] = [[]]
@@ -291,15 +198,9 @@ class NotesGenerator:
 
         partial_lines = []
         for batch in batches:
-            partial = self._call_reduce(NOTES_REDUCE_PARTIAL_USER, batch, title_hint)
+            partial = self._ask(
+                NOTES_REDUCE_PARTIAL_USER.format(title_hint=title_hint, sections="\n".join(batch)),
+                SummaryDraft,
+            )
             partial_lines.append(f"{partial.title}: {partial.overview}")
         return self._reduce_lines(partial_lines, title_hint)
-
-    def _call_reduce(self, template: str, lines: list[str], title_hint: str) -> SummaryDraft:
-        prompt = template.format(title_hint=title_hint, sections="\n".join(lines))
-        return generate_structured(
-            self.llm,
-            [ChatMessage("system", self.system_prompt), ChatMessage("user", prompt)],
-            SummaryDraft,
-            temperature=self.temperature,
-        )

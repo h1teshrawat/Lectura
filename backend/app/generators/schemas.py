@@ -7,9 +7,12 @@ There are two kinds of models here:
   merge and attach real timestamps (in seconds).
 """
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field
+
+Difficulty = Literal["easy", "medium", "hard"]
+Timestamp = str | float | int | None
 
 
 def _strip_list(values: list[str]) -> list[str]:
@@ -55,6 +58,36 @@ class SummaryDraft(BaseModel):
     key_takeaways: CleanList = Field(min_length=1)
 
 
+class FlashcardDraft(BaseModel):
+    question: str = Field(min_length=1)
+    answer: str = Field(min_length=1)
+    timestamp: Timestamp = None
+
+
+class ChunkFlashcardsDraft(BaseModel):
+    flashcards: list[FlashcardDraft] = Field(min_length=1)
+
+
+class MCQDraft(BaseModel):
+    """A quiz question as returned by the LLM.
+
+    Deliberately lenient (any number of options, any answer text): structural
+    problems are caught by our own quality checks, so we can count and report
+    them (the "MCQ validity rate") instead of silently retrying.
+    """
+
+    question: str = Field(min_length=1)
+    options: list[str]
+    answer: str | int
+    explanation: str = ""
+    difficulty: str = "medium"
+    timestamp: Timestamp = None
+
+
+class ChunkQuizDraft(BaseModel):
+    questions: list[MCQDraft] = Field(min_length=1)
+
+
 # ---------------------------------------------------------------- final notes
 
 
@@ -76,3 +109,51 @@ class LectureNotes(BaseModel):
     sections: list[NoteSection]
     glossary: list[Definition] = Field(default_factory=list)
     language: str = "english"
+
+
+# ------------------------------------------------------- flashcards & quiz
+
+
+class Rejection(BaseModel):
+    """A generated item that failed a quality check, and why."""
+
+    item: str
+    reasons: list[str]
+
+
+class Flashcard(BaseModel):
+    id: str
+    question: str
+    answer: str
+    start_seconds: float
+
+
+class FlashcardDeck(BaseModel):
+    cards: list[Flashcard]
+    rejected: list[Rejection] = Field(default_factory=list)
+
+
+class QuizQuestion(BaseModel):
+    id: str
+    question: str
+    options: list[str] = Field(min_length=4, max_length=4)
+    correct_index: int = Field(ge=0, le=3)
+    explanation: str
+    difficulty: Difficulty
+    start_seconds: float
+
+
+class QuestionBank(BaseModel):
+    """All valid questions for a lecture. Each quiz is picked from this bank."""
+
+    questions: list[QuizQuestion]
+    rejected: list[Rejection] = Field(default_factory=list)
+
+    @property
+    def generated_count(self) -> int:
+        return len(self.questions) + len(self.rejected)
+
+    @property
+    def validity_rate(self) -> float:
+        """Share of generated questions that passed every quality check (0..1)."""
+        return len(self.questions) / self.generated_count if self.generated_count else 0.0
