@@ -1,0 +1,16 @@
+# LectureLens backend dependencies.
+# This file grows phase by phase, so you only install what the current phase needs.
+
+# --- Core ---
+pydantic>=2.7
+pydantic-settings>=2.3      # reads settings from .env (uses python-dotenv internally)
+python-dotenv>=1.0
+
+# --- Phase (a): transcription ---
+youtube-transcript-api>=1.2  # existing YouTube captions
+yt-dlp[default]>=2025.11.12  # audio download; [default] adds the YouTube JS-challenge solver
+groq>=0.30                   # Groq API client (Whisper now, Llama in Phase b)
+faster-whisper>=1.1          # offline Whisper fallback (CPU, no PyTorch needed)
+
+# --- Dev / tests ---
+pytest>=8.0

@@ -1,0 +1,1 @@
+"""LectureLens backend package."""
