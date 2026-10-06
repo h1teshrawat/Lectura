@@ -164,9 +164,14 @@ def get_transcript(lecture: Lecture = Depends(get_lecture_or_404)) -> Transcript
 
 
 @router.delete("/{lecture_id}", status_code=204)
-def delete_lecture(lecture: Lecture = Depends(get_lecture_or_404), session: Session = Depends(get_session)) -> Response:
+def delete_lecture(
+    request: Request,
+    lecture: Lecture = Depends(get_lecture_or_404),
+    session: Session = Depends(get_session),
+) -> Response:
     if lecture.status in repository.ACTIVE_STATUSES:
         raise api_error(409, "This lecture is still being processed.", "Wait until it finishes, then delete it.")
+    request.app.state.rag.delete(lecture.id)  # remove its chat search index too
     # FastAPI reuses one session per request, so `lecture` belongs to `session`.
     repository.delete_lecture(session, lecture)
     return Response(status_code=204)

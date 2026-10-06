@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy import Engine
 from sqlmodel import Session, col, delete, select
 
-from app.db.models import FlashcardReview, Lecture, QuizAttempt, utcnow
+from app.db.models import ChatEntry, FlashcardReview, Lecture, QuizAttempt, utcnow
 
 ACTIVE_STATUSES = ("queued", "processing")
 
@@ -66,7 +66,32 @@ def update_lecture(engine: Engine, lecture_id: str, **fields: Any) -> None:
 def delete_lecture(session: Session, lecture: Lecture) -> None:
     session.exec(delete(QuizAttempt).where(QuizAttempt.lecture_id == lecture.id))  # type: ignore[call-overload]
     session.exec(delete(FlashcardReview).where(FlashcardReview.lecture_id == lecture.id))  # type: ignore[call-overload]
+    session.exec(delete(ChatEntry).where(ChatEntry.lecture_id == lecture.id))  # type: ignore[call-overload]
     session.delete(lecture)
+    session.commit()
+
+
+# ------------------------------------------------------------------ chat
+
+
+def list_chat(session: Session, lecture_id: str, limit: int | None = None) -> list[ChatEntry]:
+    """Chat messages in time order (only the latest `limit` if given)."""
+    statement = select(ChatEntry).where(ChatEntry.lecture_id == lecture_id).order_by(col(ChatEntry.id).desc())
+    if limit:
+        statement = statement.limit(limit)
+    return list(reversed(list(session.exec(statement))))
+
+
+def add_chat_entry(session: Session, lecture_id: str, role: str, content: str, sources_json: str = "[]") -> ChatEntry:
+    entry = ChatEntry(lecture_id=lecture_id, role=role, content=content, sources_json=sources_json)
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+    return entry
+
+
+def clear_chat(session: Session, lecture_id: str) -> None:
+    session.exec(delete(ChatEntry).where(ChatEntry.lecture_id == lecture_id))  # type: ignore[call-overload]
     session.commit()
 
 

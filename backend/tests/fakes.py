@@ -1,5 +1,6 @@
 """A fake LLM for tests: returns scripted replies, needs no internet or API key."""
 
+import re
 from collections.abc import Callable, Iterator
 
 from app.llm.base import ChatMessage, LLMProvider, LLMResponse
@@ -30,4 +31,5 @@ class FakeLLM(LLMProvider):
         return LLMResponse(text=self._next_reply(messages), prompt_tokens=10, completion_tokens=5)
 
     def stream(self, messages, *, temperature=0.3, max_tokens=2048) -> Iterator[str]:
-        yield from self._next_reply(messages).split(" ")
+        # Stream word by word, keeping the spaces, like real model tokens.
+        yield from re.findall(r"\S+\s*", self._next_reply(messages))

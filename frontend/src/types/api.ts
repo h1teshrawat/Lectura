@@ -174,3 +174,30 @@ export interface FlashcardProgress {
   due_now: number;
   cards: CardProgress[];
 }
+
+// ----------------------------------------------------------------- chat
+
+/** A transcript excerpt the answer was based on. */
+export interface ChatSource {
+  start: number;
+  end: number;
+  text: string;
+  /** Cosine similarity to the question, 0..1 */
+  similarity: number;
+}
+
+export interface ChatEntry {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  sources: ChatSource[];
+  created_at: string;
+}
+
+/** Events streamed back while an answer is generated. */
+export type ChatStreamEvent =
+  | { type: "status"; data: { message: string } }
+  | { type: "sources"; data: { sources: ChatSource[] } }
+  | { type: "token"; data: { text: string } }
+  | { type: "done"; data: { answer: string; message_id?: number } }
+  | { type: "error"; data: { message: string; hint?: string | null } };

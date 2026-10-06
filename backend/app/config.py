@@ -48,6 +48,19 @@ class Settings(BaseSettings):
     chunk_seconds: int = 300
     notes_language: str = "english"
 
+    # RAG chat
+    # Multilingual model (50+ languages) so Hindi/Hinglish questions work too.
+    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    rag_chunk_seconds: float = 60.0
+    rag_chunk_overlap_seconds: float = 15.0
+    rag_top_k: int = 5
+    # Below this similarity (0..1) nothing in the lecture is related to the question.
+    # Measured on a real lecture: on-topic questions scored 0.45-0.80, off-topic 0.03-0.13.
+    rag_min_similarity: float = 0.20
+    rag_history_messages: int = 6
+    # Load the embedding model in the background when the server starts.
+    rag_warmup: bool = True
+
     # Limits
     long_video_warning_hours: float = 3.0
     max_upload_mb: int = 500

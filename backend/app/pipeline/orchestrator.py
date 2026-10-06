@@ -17,7 +17,7 @@ from app.generators.quiz import QuizGenerator
 from app.generators.schemas import FlashcardDeck, LectureNotes, QuestionBank
 from app.llm.base import LLMProvider, LLMUsage
 from app.llm.factory import get_llm
-from app.transcription.models import TranscriptionResult
+from app.transcription.models import Transcript, TranscriptionResult
 from app.transcription.service import TranscriptionService
 
 logger = logging.getLogger(__name__)
@@ -56,10 +56,12 @@ class LecturePipeline:
         settings: Settings,
         transcriber: TranscriptionService | None = None,
         llm_factory: Callable[[], LLMProvider] | None = None,
+        indexer: Callable[[str, Transcript], int] | None = None,
     ) -> None:
         self.settings = settings
         self.transcriber = transcriber or TranscriptionService(settings)
         self.llm_factory = llm_factory or (lambda: get_llm(settings=settings))
+        self.indexer = indexer  # builds the chat search index (RAGService.index_transcript)
 
     def run(
         self,
@@ -116,8 +118,15 @@ class LecturePipeline:
             transcript, on_progress=lambda message, fraction: report("quiz", fraction, message)
         )
 
-        # 6. Indexing for "chat with the lecture" (added in Phase g)
-        report("indexing", 1.0, "Search index for chat will be added in Phase g.")
+        # 6. Indexing for "chat with the lecture" (RAG)
+        report("indexing", 0.0, "Indexing the transcript for chat...")
+        if self.indexer:
+            try:
+                pieces = self.indexer(job.lecture_id, transcript)
+                report("indexing", 1.0, f"Indexed {pieces} transcript pieces for chat.")
+            except Exception:  # noqa: BLE001 - notes/quiz are ready; chat retries indexing on first use
+                logger.exception("Indexing for chat failed for lecture %s", job.lecture_id)
+                report("indexing", 1.0, "Chat index will be built when you first open the chat.")
 
         logger.info(
             "Lecture %s processed with %s: %d LLM calls, %d tokens",

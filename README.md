@@ -12,7 +12,7 @@ AI-powered YouTube/lecture summariser and quiz generator: smart notes with click
 - [x] **Phase d:** FastAPI, background jobs, SSE live progress, SQLite cache
 - [x] **Phase e:** React frontend: home, live processing screen, workspace with notes tab
 - [x] **Phase f:** flashcards (3D flip, shortcuts, Leitner spaced repetition) + quiz (timer, feedback, results, retry wrong)
-- [ ] Phase g: RAG chat
+- [x] **Phase g:** RAG chat: multilingual embeddings, ChromaDB, grounded streaming answers with timestamp citations
 - [ ] Phase h: library, stats, export
 - [ ] Phase i: evaluation
 - [ ] Phase j: polish, README, deployment

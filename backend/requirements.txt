@@ -21,5 +21,9 @@ uvicorn[standard]>=0.30      # the web server that runs FastAPI
 sqlmodel>=0.0.22             # SQLite database models (SQLAlchemy + Pydantic)
 python-multipart>=0.0.9      # needed for file uploads
 
+# --- Phase (g): RAG chat ---
+sentence-transformers>=3.0   # text embeddings (installs PyTorch, CPU is fine)
+chromadb>=1.0                # local vector database
+
 # --- Dev / tests ---
 pytest>=8.0

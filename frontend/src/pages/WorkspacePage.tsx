@@ -1,12 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Layers, ListChecks, MessageSquare } from "lucide-react";
-import { useCallback, useMemo, useRef, type ReactNode } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import type { YouTubePlayer } from "react-youtube";
 
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ChatTab } from "@/features/chat/ChatTab";
 import { FlashcardsTab } from "@/features/flashcards/FlashcardsTab";
 import { NotesTab } from "@/features/notes/NotesTab";
 import { QuizTab } from "@/features/quiz/QuizTab";
@@ -95,38 +96,12 @@ export function WorkspacePage() {
               {activeTab === "notes" && <NotesTab notes={lecture.notes} />}
               {activeTab === "flashcards" && <FlashcardsTab lectureId={lecture.id} cards={lecture.flashcards} />}
               {activeTab === "quiz" && <QuizTab lectureId={lecture.id} bankSize={lecture.quiz_count} />}
-              {activeTab === "chat" && (
-                <ComingSoon
-                  icon={<MessageSquare className="size-6" />}
-                  title="Chat with this lecture"
-                  phase="g"
-                  description="Ask questions and get answers grounded in the transcript, with timestamp citations."
-                />
-              )}
+              {activeTab === "chat" && <ChatTab lecture={lecture} />}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
     </PlayerContext.Provider>
-  );
-}
-
-function ComingSoon({ icon, title, description, phase }: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  phase: string;
-}) {
-  return (
-    <EmptyState
-      icon={icon}
-      title={title}
-      description={
-        <>
-          {description} <span className="mt-2 block text-xs text-faint">Coming in Phase ({phase})</span>
-        </>
-      }
-    />
   );
 }
 

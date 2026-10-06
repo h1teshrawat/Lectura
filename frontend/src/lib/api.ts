@@ -2,6 +2,7 @@
 
 import type {
   CardProgress,
+  ChatEntry,
   FlashcardProgress,
   Health,
   LectureCreated,
@@ -40,11 +41,13 @@ function readError(detail: ErrorDetail, status: number): { message: string; hint
   return { message: `Request failed (${status})` };
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/** fetch() that turns network failures and error responses into ApiError. */
+export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE}${path}`, init);
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new ApiError(
       0,
       "Can't reach the LectureLens server.",
@@ -62,7 +65,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const { message, hint } = readError(body?.detail, response.status);
     throw new ApiError(response.status, message, hint);
   }
+  return response;
+}
 
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await apiFetch(path, init);
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
@@ -122,4 +129,8 @@ export const api = {
 
   resetFlashcardProgress: (id: string) =>
     request<void>(`/api/lectures/${id}/flashcards/progress`, { method: "DELETE" }),
+
+  // ---- chat (sending a message streams: see features/chat/streamChat.ts)
+  getChat: (id: string) => request<ChatEntry[]>(`/api/lectures/${id}/chat`),
+  clearChat: (id: string) => request<void>(`/api/lectures/${id}/chat`, { method: "DELETE" }),
 };

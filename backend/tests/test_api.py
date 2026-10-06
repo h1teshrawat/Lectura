@@ -20,7 +20,11 @@ from app.generators.schemas import (
 from app.llm.base import LLMUsage
 from app.main import create_app
 from app.pipeline.orchestrator import JobRequest, PipelineResult
+from app.rag.service import RAGService
+from app.rag.vector_store import ChromaVectorStore
 from app.transcription.models import MediaInfo, Transcript, TranscriptionResult, TranscriptSegment
+from tests.fakes import FakeLLM
+from tests.fakes_rag import HashingEmbedder
 
 VIDEO_URL = "https://www.youtube.com/watch?v=aircAruvnKk"
 
@@ -78,9 +82,20 @@ class FakePipeline:
         )
 
 
+CHAT_ANSWER = "The lecture says hello and welcome [0:00]."
+
+
 def _make_client(tmp_path, pipeline) -> Iterator[TestClient]:
-    settings = Settings(_env_file=None, data_dir=tmp_path, groq_api_key="test-key")
-    with TestClient(create_app(settings, pipeline=pipeline)) as client:
+    settings = Settings(
+        _env_file=None, data_dir=tmp_path, groq_api_key="test-key", rag_warmup=False, rag_min_similarity=0.1
+    )
+    rag = RAGService(
+        store=ChromaVectorStore(path=None),
+        embedder=HashingEmbedder(),
+        llm_factory=lambda: FakeLLM([CHAT_ANSWER]),
+        settings=settings,
+    )
+    with TestClient(create_app(settings, pipeline=pipeline, rag=rag)) as client:
         yield client
 
 
@@ -277,3 +292,41 @@ def test_flashcard_spaced_repetition_flow(client: TestClient) -> None:
     # Deleting the lecture also removes its review rows (no foreign-key error).
     client.post(f"{base}/c1/review", json={"result": "got_it"})
     assert client.delete(f"/api/lectures/{lecture_id}").status_code == 204
+
+
+def _chat(client: TestClient, lecture_id: str, message: str) -> list[tuple[str, dict]]:
+    """Send a chat message and parse the Server-Sent Events into (event, data) pairs."""
+    with client.stream("POST", f"/api/lectures/{lecture_id}/chat", json={"message": message}) as response:
+        assert response.status_code == 200
+        body = "".join(response.iter_text())
+    events = []
+    for block in body.strip().split("\n\n"):
+        lines = dict(line.split(": ", 1) for line in block.splitlines())
+        events.append((lines["event"], json.loads(lines["data"])))
+    return events
+
+
+def test_chat_streams_grounded_answer_and_saves_history(client: TestClient) -> None:
+    lecture_id = _create(client)["id"]
+    _wait_until_finished(client, lecture_id)
+
+    events = _chat(client, lecture_id, "What does the speaker say when welcoming everyone?")
+    names = [name for name, _ in events]
+    assert names[0] in ("status", "sources") and "token" in names and names[-1] == "done"
+    sources = next(data for name, data in events if name == "sources")["sources"]
+    assert sources and sources[0]["text"] == "Hello and welcome."
+    assert events[-1][1]["answer"] == CHAT_ANSWER
+
+    history = client.get(f"/api/lectures/{lecture_id}/chat").json()
+    assert [m["role"] for m in history] == ["user", "assistant"]
+    assert history[1]["sources"][0]["start"] == 0
+
+    assert client.delete(f"/api/lectures/{lecture_id}/chat").status_code == 204
+    assert client.get(f"/api/lectures/{lecture_id}/chat").json() == []
+
+    # Unrelated first question: "not covered", answered without calling the LLM.
+    off_topic = _chat(client, lecture_id, "Who won the cricket world cup?")
+    assert off_topic[-1][1]["answer"] == "This isn't covered in this lecture."
+
+    # Validation: empty messages are rejected.
+    assert client.post(f"/api/lectures/{lecture_id}/chat", json={"message": ""}).status_code == 422

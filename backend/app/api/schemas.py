@@ -166,6 +166,27 @@ class ReviewIn(BaseModel):
     result: Literal["got_it", "again"]
 
 
+class SourceOut(BaseModel):
+    """A transcript excerpt used to answer a chat question."""
+
+    start: float
+    end: float
+    text: str
+    similarity: float
+
+
+class ChatIn(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+
+
+class ChatMessageOut(BaseModel):
+    id: int
+    role: Literal["user", "assistant"]
+    content: str
+    sources: list[SourceOut]
+    created_at: datetime
+
+
 class HealthOut(BaseModel):
     status: str
     version: str

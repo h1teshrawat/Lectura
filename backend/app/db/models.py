@@ -69,6 +69,17 @@ class QuizAttempt(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utcnow, index=True)
 
 
+class ChatEntry(SQLModel, table=True):
+    """One message in a lecture's chat history."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    lecture_id: str = Field(foreign_key="lecture.id", index=True)
+    role: str  # "user" | "assistant"
+    content: str
+    sources_json: str = "[]"
+    created_at: datetime = Field(default_factory=utcnow)
+
+
 class FlashcardReview(SQLModel, table=True):
     """Spaced-repetition progress of one flashcard (Leitner box and next due date)."""
 

@@ -7,32 +7,51 @@ Then open http://127.0.0.1:8000/docs for interactive API documentation.
 """
 
 import logging
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from app.api import routes_flashcards, routes_lectures, routes_quiz
+from app.api import routes_chat, routes_flashcards, routes_lectures, routes_quiz
 from app.api.errors import register_error_handlers
 from app.api.schemas import HealthOut
 from app.config import Settings, get_settings
 from app.db import repository
 from app.db.session import create_db_engine
+from app.llm.factory import get_llm
 from app.logging_config import setup_logging
 from app.pipeline.jobs import JobManager, Pipeline
 from app.pipeline.orchestrator import LecturePipeline
 from app.pipeline.progress import ProgressStore
+from app.rag.embedder import SentenceTransformerEmbedder
+from app.rag.service import RAGService
+from app.rag.vector_store import ChromaVectorStore
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 logger = logging.getLogger(__name__)
 
 
-def create_app(settings: Settings | None = None, pipeline: Pipeline | None = None) -> FastAPI:
+def build_rag(settings: Settings) -> RAGService:
+    """The real RAG service: multilingual embeddings + ChromaDB on disk + the configured LLM."""
+    return RAGService(
+        store=ChromaVectorStore(settings.data_path / "chroma"),
+        embedder=SentenceTransformerEmbedder(settings.embedding_model),
+        llm_factory=lambda: get_llm(settings=settings),
+        settings=settings,
+    )
+
+
+def create_app(
+    settings: Settings | None = None,
+    pipeline: Pipeline | None = None,
+    rag: RAGService | None = None,
+) -> FastAPI:
     """Build the FastAPI app (the *app factory* pattern).
 
-    Tests call this with temporary settings and a fake pipeline, so they
-    never touch your real database or call real APIs.
+    Tests call this with temporary settings, a fake pipeline and a fake RAG
+    service, so they never touch your real database or call real APIs.
     """
     settings = settings or get_settings()
 
@@ -48,9 +67,17 @@ def create_app(settings: Settings | None = None, pipeline: Pipeline | None = Non
         app.state.settings = settings
         app.state.engine = engine
         app.state.progress = ProgressStore()
+        app.state.rag = rag or build_rag(settings)
         app.state.jobs = JobManager(
-            engine, pipeline or LecturePipeline(settings), app.state.progress, settings.max_parallel_jobs
+            engine,
+            pipeline or LecturePipeline(settings, indexer=app.state.rag.index_transcript),
+            app.state.progress,
+            settings.max_parallel_jobs,
         )
+        # Load the embedding model in the background, so the first chat question is fast.
+        embedder = app.state.rag.embedder
+        if settings.rag_warmup and hasattr(embedder, "warm_up"):
+            threading.Thread(target=embedder.warm_up, name="embedding-warmup", daemon=True).start()
         logger.info("LectureLens API ready. Docs at /docs")
         yield
         # --- shutdown ---
@@ -75,6 +102,7 @@ def create_app(settings: Settings | None = None, pipeline: Pipeline | None = Non
     app.include_router(routes_lectures.router)
     app.include_router(routes_quiz.router)
     app.include_router(routes_flashcards.router)
+    app.include_router(routes_chat.router)
 
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:
