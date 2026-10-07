@@ -108,8 +108,10 @@ class RAGService:
         Results from several queries are merged, keeping each piece's best score.
         """
         queries = [query, *extra_queries]
+        # Some embedders (e.g. Gemini) embed questions differently from documents.
+        embed_query = getattr(self.embedder, "embed_query", self.embedder.embed)
         best: dict[float, SearchHit] = {}
-        for vector in self.embedder.embed(queries):
+        for vector in embed_query(queries):
             for hit in self.store.search(lecture_id, vector, self.settings.rag_top_k):
                 if hit.start not in best or hit.similarity > best[hit.start].similarity:
                     best[hit.start] = hit

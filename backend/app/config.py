@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     local_whisper_compute_type: str = "int8"
     local_whisper_device: str = "cpu"
     audio_segment_seconds: int = 600
+    # Set to false on small cloud servers: local Whisper needs ~1 GB of RAM.
+    local_whisper_enabled: bool = True
 
     # LLM
     llm_provider: Literal["groq", "gemini"] = "groq"
@@ -49,8 +51,12 @@ class Settings(BaseSettings):
     notes_language: str = "english"
 
     # RAG chat
+    # "local" = sentence-transformers on this machine (needs PyTorch, ~1 GB RAM);
+    # "gemini" = Google's embedding API (tiny memory use; for small cloud servers).
+    embedding_provider: Literal["local", "gemini"] = "local"
     # Multilingual model (50+ languages) so Hindi/Hinglish questions work too.
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    gemini_embedding_model: str = "gemini-embedding-001"
     rag_chunk_seconds: float = 60.0
     rag_chunk_overlap_seconds: float = 15.0
     rag_top_k: int = 5

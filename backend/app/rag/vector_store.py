@@ -50,7 +50,13 @@ class VectorStore(Protocol):
 class ChromaVectorStore:
     """ChromaDB store on disk (or in memory when `path` is None, for tests)."""
 
-    def __init__(self, path: Path | None) -> None:
+    def __init__(self, path: Path | None, collection: str = "lecture_chunks") -> None:
+        """
+        Args:
+            path: Folder for the database, or None for an in-memory store (tests).
+            collection: Collection name. Vectors from different embedding models
+                can't be compared, so each model gets its own collection.
+        """
         chroma_settings = ChromaSettings(anonymized_telemetry=False)
         if path is None:
             self.client = chromadb.EphemeralClient(settings=chroma_settings)
@@ -58,7 +64,7 @@ class ChromaVectorStore:
         else:
             path.mkdir(parents=True, exist_ok=True)
             self.client = chromadb.PersistentClient(path=str(path), settings=chroma_settings)
-            name = "lecture_chunks"
+            name = collection
         # Cosine distance = 1 - cosine similarity. We always pass our own embeddings.
         self.collection = self.client.get_or_create_collection(
             name=name, metadata={"hnsw:space": "cosine"}, embedding_function=None

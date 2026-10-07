@@ -7,6 +7,7 @@ Then open http://127.0.0.1:8000/docs for interactive API documentation.
 """
 
 import logging
+import re
 import threading
 from contextlib import asynccontextmanager
 
@@ -25,7 +26,7 @@ from app.logging_config import setup_logging
 from app.pipeline.jobs import JobManager, Pipeline
 from app.pipeline.orchestrator import LecturePipeline
 from app.pipeline.progress import ProgressStore
-from app.rag.embedder import SentenceTransformerEmbedder
+from app.rag.embedder import GeminiEmbedder, SentenceTransformerEmbedder
 from app.rag.service import RAGService
 from app.rag.vector_store import ChromaVectorStore
 
@@ -34,10 +35,17 @@ logger = logging.getLogger(__name__)
 
 
 def build_rag(settings: Settings) -> RAGService:
-    """The real RAG service: multilingual embeddings + ChromaDB on disk + the configured LLM."""
+    """The real RAG service: embeddings (local model or Gemini API) + ChromaDB on disk + the LLM."""
+    if settings.embedding_provider == "gemini":
+        embedder = GeminiEmbedder(settings.gemini_api_key, settings.gemini_embedding_model)
+        # Different models give incompatible vectors: keep them in separate collections.
+        collection = "lecture_chunks_" + re.sub(r"[^a-z0-9]+", "_", settings.gemini_embedding_model.lower())
+    else:
+        embedder = SentenceTransformerEmbedder(settings.embedding_model)
+        collection = "lecture_chunks"
     return RAGService(
-        store=ChromaVectorStore(settings.data_path / "chroma"),
-        embedder=SentenceTransformerEmbedder(settings.embedding_model),
+        store=ChromaVectorStore(settings.data_path / "chroma", collection=collection),
+        embedder=embedder,
         llm_factory=lambda: get_llm(settings=settings),
         settings=settings,
     )
@@ -122,6 +130,8 @@ def create_app(
             llm_model=model,
             groq_configured=settings.has_groq,
             gemini_configured=settings.has_gemini,
+            embedding_provider=settings.embedding_provider,
+            local_whisper_enabled=settings.local_whisper_enabled,
         )
 
     return app

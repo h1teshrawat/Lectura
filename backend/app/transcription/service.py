@@ -15,14 +15,16 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:  # only for type hints: the real import happens lazily
+    from app.transcription.local_whisper import LocalWhisperTranscriber
 
 from app.config import Settings, get_settings
 from app.errors import RateLimitError, TranscriptionFailedError, UnsupportedFileError
 from app.transcription.audio import SUPPORTED_EXTENSIONS, AudioPart, probe_duration, split_audio
 from app.transcription.downloader import download_audio, fetch_metadata
 from app.transcription.groq_whisper import GroqWhisperError, GroqWhisperTranscriber
-from app.transcription.local_whisper import LocalWhisperTranscriber
 from app.transcription.models import (
     Language,
     MediaInfo,
@@ -75,11 +77,29 @@ class TranscriptionService:
 
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or get_settings()
-        self.local_whisper = LocalWhisperTranscriber(
-            model_size=self.settings.local_whisper_model,
-            device=self.settings.local_whisper_device,
-            compute_type=self.settings.local_whisper_compute_type,
-        )
+        self._local_whisper: "LocalWhisperTranscriber | None" = None
+
+    @property
+    def local_whisper(self) -> "LocalWhisperTranscriber":
+        """The offline Whisper model, imported and created only when first needed.
+
+        Importing faster-whisper alone costs memory, so small cloud servers that
+        disable it (LOCAL_WHISPER_ENABLED=false) never load it at all.
+        """
+        if not self.settings.local_whisper_enabled:
+            raise TranscriptionFailedError(
+                "Local Whisper is disabled on this server.",
+                hint="Set LOCAL_WHISPER_ENABLED=true, or make sure GROQ_API_KEY is set.",
+            )
+        if self._local_whisper is None:
+            from app.transcription.local_whisper import LocalWhisperTranscriber
+
+            self._local_whisper = LocalWhisperTranscriber(
+                model_size=self.settings.local_whisper_model,
+                device=self.settings.local_whisper_device,
+                compute_type=self.settings.local_whisper_compute_type,
+            )
+        return self._local_whisper
 
     # ------------------------------------------------------------------ public
 
@@ -222,6 +242,11 @@ class TranscriptionService:
                     "You chose the Groq engine but GROQ_API_KEY is not set.",
                     hint="Add your key to backend/.env, or use the local engine.",
                 )
+            elif not self.settings.local_whisper_enabled:
+                raise TranscriptionFailedError(
+                    "No speech-to-text engine is available: GROQ_API_KEY is not set and local Whisper is disabled.",
+                    hint="Add GROQ_API_KEY to the server settings.",
+                )
             else:
                 logger.info("No GROQ_API_KEY set, so using local Whisper (slower on CPU).")
 
@@ -239,7 +264,8 @@ class TranscriptionService:
                     segments, lang = groq_client.transcribe(part.path, whisper_language)
                     engines_used.add("groq")
                 except GroqWhisperError as exc:
-                    if engine == "groq":
+                    if engine == "groq" or not self.settings.local_whisper_enabled:
+                        # No fallback available: report the Groq problem itself.
                         error_cls = RateLimitError if exc.rate_limited else TranscriptionFailedError
                         raise error_cls(f"Groq transcription failed: {exc.reason}.") from exc
                     logger.warning("Groq failed on %s (%s). Falling back to local Whisper.", label, exc.reason)

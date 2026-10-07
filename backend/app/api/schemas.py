@@ -194,3 +194,5 @@ class HealthOut(BaseModel):
     llm_model: str
     groq_configured: bool
     gemini_configured: bool
+    embedding_provider: str
+    local_whisper_enabled: bool

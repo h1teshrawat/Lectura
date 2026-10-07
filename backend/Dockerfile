@@ -1,4 +1,5 @@
-# Lectura backend: container image for Hugging Face Spaces (Docker) or Render.
+# Lectura backend, FULL mode (local Whisper + local embeddings; needs >= 2 GB RAM).
+# For the free 512 MB cloud plan use Dockerfile.lite instead (see docs/DEPLOYMENT.md).
 #
 # Build context = the backend/ folder:
 #   docker build -t lectura-backend backend
@@ -12,7 +13,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg fonts-noto-core nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Hugging Face Spaces run containers as user 1000; use the same user everywhere.
+# Run as a normal user, not root (a security best practice for containers).
 RUN useradd --create-home --uid 1000 user
 USER user
 ENV HOME=/home/user \
@@ -31,6 +32,6 @@ RUN pip install --no-cache-dir --user torch --index-url https://download.pytorch
 
 COPY --chown=user . .
 
-# Hugging Face Spaces expect port 7860; Render passes its port in $PORT.
+# Listens on $PORT if the host sets it (Render does), otherwise 7860.
 EXPOSE 7860
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]

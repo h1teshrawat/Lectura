@@ -1,0 +1,31 @@
+# Lectura backend, "lite" image for small free cloud servers (Render free: 512 MB RAM).
+# No PyTorch / local models: speech-to-text uses Groq Whisper and embeddings use the
+# Gemini API. Measured memory: ~150 MB idle, ~185 MB peak while processing.
+
+FROM python:3.11-slim
+
+# ffmpeg: audio conversion. fonts-noto-core: Latin + Devanagari fonts for PDF export.
+# nodejs: JavaScript runtime that yt-dlp uses for YouTube downloads.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg fonts-noto-core nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --create-home --uid 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    LOCAL_WHISPER_ENABLED=false \
+    EMBEDDING_PROVIDER=gemini \
+    RAG_WARMUP=false
+RUN mkdir -p /home/user/app/data
+WORKDIR /home/user/app
+
+COPY --chown=user requirements-lite.txt .
+RUN pip install --no-cache-dir --user -r requirements-lite.txt
+
+COPY --chown=user . .
+
+# Render passes the port to listen on in $PORT.
+EXPOSE 10000
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

@@ -1,0 +1,20 @@
+# Lectura backend: "lite" dependencies for small cloud servers (e.g. Render's free 512 MB plan).
+# Compared with requirements.txt this leaves out PyTorch, sentence-transformers and faster-whisper.
+# Run it with:  LOCAL_WHISPER_ENABLED=false  and  EMBEDDING_PROVIDER=gemini
+# (speech-to-text via Groq Whisper, embeddings via the Gemini API).
+# Measured: ~150 MB idle, ~185 MB peak while processing a lecture.
+
+pydantic>=2.7
+pydantic-settings>=2.3
+python-dotenv>=1.0
+youtube-transcript-api>=1.2
+yt-dlp[default]>=2025.11.12
+groq>=0.30
+google-genai>=1.0
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlmodel>=0.0.22
+python-multipart>=0.0.9
+chromadb>=1.0
+fpdf2>=2.8
+uharfbuzz>=0.40

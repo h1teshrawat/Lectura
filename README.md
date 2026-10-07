@@ -196,6 +196,8 @@ All settings have sensible defaults; see `backend/.env.example` for the full lis
 | `GEMINI_MODEL` | `gemini-flash-latest` | pin a version for reproducible evaluation |
 | `LOCAL_WHISPER_MODEL` | `small` | offline fallback: `tiny`, `base`, `small`, `medium` |
 | `CHUNK_SECONDS` | `300` | chunk length for the map step |
+| `LOCAL_WHISPER_ENABLED` | `true` | `false` on small servers (no offline fallback) |
+| `EMBEDDING_PROVIDER` | `local` | `local` (sentence-transformers) or `gemini` (API, for small servers) |
 | `RAG_TOP_K` / `RAG_MIN_SIMILARITY` | `5` / `0.20` | excerpts per chat answer / "unrelated question" threshold |
 | `CORS_ORIGINS` | localhost:5173 | websites allowed to call the API (add your Vercel URL) |
 
@@ -347,8 +349,8 @@ LectureLens/
 │   │   └── main.py          FastAPI app factory
 │   ├── cli/                 command-line test tools
 │   ├── tests/               pytest suite (fake LLM, no network)
-│   ├── server.py · packages.txt   Hugging Face Space entry point and system packages
-│   └── Dockerfile           for Docker hosts (e.g. Render)
+│   ├── requirements-lite.txt · Dockerfile.lite   free-cloud "lite" mode (Render)
+│   └── Dockerfile           full mode for hosts with ≥ 2 GB RAM
 ├── frontend/
 │   └── src/  pages/ · features/ (notes, flashcards, quiz, chat, …) · components/ · hooks/ · lib/
 ├── evaluation/              ROUGE, LLM comparison, WER: scripts, references, results
@@ -357,9 +359,19 @@ LectureLens/
 
 ## Deployment
 
-Backend → **Hugging Face Spaces** (free *Gradio* SDK used as a Python runtime via `server.py`,
-16 GB RAM); frontend → **Vercel**. A `Dockerfile` is included for Docker-based hosts such as Render.
-Step-by-step guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** (Render alternative included).
+Backend → **Render** free plan (512 MB) in **lite mode**; frontend → **Vercel**.
+Step-by-step guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
+| | Full mode (your PC, `Dockerfile`) | Lite mode (free cloud, `Dockerfile.lite`) |
+|---|---|---|
+| Speech-to-text | captions → Groq Whisper → local faster-whisper | captions → Groq Whisper |
+| Chat embeddings | local multilingual MiniLM (PyTorch) | Gemini `gemini-embedding-001` API |
+| Memory | > 1 GB | ~150 MB idle, ~185 MB peak (measured) |
+| Settings | defaults | `LOCAL_WHISPER_ENABLED=false`, `EMBEDDING_PROVIDER=gemini` |
+
+The same code runs in both modes; heavy libraries are imported only when used, so lite mode never loads
+PyTorch. `python -m cli.calibrate_rag <lecture-id> --provider gemini` suggests the chat similarity
+threshold for a given embedding model.
 
 ## Limitations
 
@@ -374,6 +386,9 @@ Step-by-step guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** (Render alterna
 - **Evaluation scale:** a few lectures and one 2-minute clip give indicative, not statistically significant,
   results.
 - **No user accounts:** one local user; the deployed demo has no login.
+- **Free cloud demo:** the free server sleeps after 15 minutes (≈1 min to wake up) and its disk is
+  temporary, so lectures processed online disappear after a restart; lite mode has no offline
+  transcription fallback.
 
 ## Future scope
 
