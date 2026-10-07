@@ -1,0 +1,9 @@
+# Never copy secrets, local data or the Windows virtual environment into the image.
+.env
+.venv/
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+fonts/

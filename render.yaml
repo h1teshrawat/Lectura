@@ -1,0 +1,20 @@
+# Render Blueprint for the Lectura backend (Dashboard -> New -> Blueprint -> pick this repo).
+# Note: Render's free instance has 512 MB RAM, which is too little for the embedding model
+# and local Whisper; use at least the "starter" plan, or deploy to Hugging Face Spaces instead.
+services:
+  - type: web
+    name: lectura-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false        # set the value in the Render dashboard (never commit keys)
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: '["https://your-app.vercel.app"]'
+      - key: RAG_WARMUP
+        value: "false"     # load the embedding model on first chat instead of at boot
