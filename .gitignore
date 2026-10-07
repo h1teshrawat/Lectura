@@ -29,3 +29,6 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Presentation deck source (published separately)
+docs/presentation/
