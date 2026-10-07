@@ -1,6 +1,11 @@
 # Lectura backend dependencies.
 # This file grows phase by phase, so you only install what the current phase needs.
 
+# Also look at PyTorch's CPU-only package index: on Linux servers (e.g. Hugging Face
+# Spaces) this installs the CPU build instead of the ~3 GB GPU build, which a free
+# CPU server can't use anyway. (On Windows, the normal PyTorch package is already CPU-only.)
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # --- Core ---
 pydantic>=2.7
 pydantic-settings>=2.3      # reads settings from .env (uses python-dotenv internally)

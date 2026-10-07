@@ -347,7 +347,8 @@ LectureLens/
 │   │   └── main.py          FastAPI app factory
 │   ├── cli/                 command-line test tools
 │   ├── tests/               pytest suite (fake LLM, no network)
-│   └── Dockerfile           for Hugging Face Spaces / Render
+│   ├── server.py · packages.txt   Hugging Face Space entry point and system packages
+│   └── Dockerfile           for Docker hosts (e.g. Render)
 ├── frontend/
 │   └── src/  pages/ · features/ (notes, flashcards, quiz, chat, …) · components/ · hooks/ · lib/
 ├── evaluation/              ROUGE, LLM comparison, WER: scripts, references, results
@@ -356,7 +357,8 @@ LectureLens/
 
 ## Deployment
 
-Backend → **Hugging Face Spaces** (Docker, free CPU with 16 GB RAM); frontend → **Vercel**.
+Backend → **Hugging Face Spaces** (free *Gradio* SDK used as a Python runtime via `server.py`,
+16 GB RAM); frontend → **Vercel**. A `Dockerfile` is included for Docker-based hosts such as Render.
 Step-by-step guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** (Render alternative included).
 
 ## Limitations

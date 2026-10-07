@@ -2,13 +2,16 @@
 
 | Part | Where | Why |
 |---|---|---|
-| Backend (FastAPI + Whisper + embeddings) | **Hugging Face Spaces**, Docker, free *CPU basic* (2 vCPU, 16 GB RAM) | Enough memory for PyTorch, the embedding model and local Whisper |
+| Backend (FastAPI + Whisper + embeddings) | **Hugging Face Spaces**, *Gradio* SDK, free *CPU basic* (2 vCPU, 16 GB RAM) | Enough memory for PyTorch, the embedding model and local Whisper |
 | Frontend (React) | **Vercel**, free *Hobby* plan | Static site + global CDN, deploys from GitHub |
 | Alternative backend | Render (Docker) | Free instances have only 512 MB RAM: use the paid *starter* plan |
 
-> The Docker image was written for these platforms but could not be test-built on the
-> development PC (Docker isn't installed there). Hugging Face builds it in the cloud;
-> if the build fails, the **Logs** tab shows the exact step.
+> **Why the Gradio SDK?** Hugging Face's *Docker* Spaces are a paid feature, but *Gradio*
+> Spaces are free. We use the Gradio SDK only as a Python runtime: it installs
+> `requirements.txt` and the system tools in `packages.txt` (ffmpeg, fonts, Node.js), then
+> runs `server.py`, which starts the FastAPI app on port 7860. Gradio's own UI is not used.
+> `server.py` was tested locally; the Space build itself runs in the cloud, so if it fails,
+> the **Logs** tab shows the exact step.
 
 Order: **1. GitHub → 2. backend → 3. frontend → 4. connect them (CORS).**
 
@@ -34,8 +37,9 @@ so they are **not** uploaded. Check on GitHub that no `.env` file appears.
 ## 2. Backend on Hugging Face Spaces
 
 1. Create an account at <https://huggingface.co>.
-2. **New → Space**: name `lectura-api`, SDK **Docker** → *Blank*, hardware **CPU basic (free)**,
-   visibility *Public* (or *Private*: then the frontend can't call it without a token, so keep it Public).
+2. **New → Space**: name `lectura-api`, SDK **Gradio** → *Blank* (Docker is paid; Gradio is free),
+   hardware **CPU basic (free)**, visibility *Public* (a *Private* Space can't be called by the
+   frontend without a token, so keep it Public).
 3. Copy the backend files into the Space's git repository:
 
 ```powershell
@@ -43,7 +47,7 @@ so they are **not** uploaded. Check on GitHub that no `.env` file appears.
 # huggingface.co -> Settings -> Access Tokens -> New token (type: Write).
 cd $env:USERPROFILE
 git clone https://huggingface.co/spaces/YOUR-HF-USERNAME/lectura-api
-robocopy C:\Projects\LectureLens\backend lectura-api /E /XD .venv data __pycache__ .pytest_cache tests /XF .env
+robocopy C:\Projects\LectureLens\backend lectura-api /E /XD .venv data __pycache__ .pytest_cache tests /XF .env Dockerfile .dockerignore
 Copy-Item C:\Projects\LectureLens\deploy\huggingface-space-README.md lectura-api\README.md -Force
 cd lectura-api
 git add .
@@ -54,7 +58,8 @@ git push      # username = your HF username, password = the access token
 4. In the Space: **Settings → Variables and secrets**
    - **Secret** `GROQ_API_KEY` = your Groq key (optionally also `GEMINI_API_KEY`)
    - **Variable** `CORS_ORIGINS` = `["https://your-app.vercel.app"]` (update after step 3)
-5. The first build takes ~10 minutes (PyTorch). When the status is **Running**, open
+5. The first build takes ~10 minutes (PyTorch). The Space page may show an empty frame
+   instead of a Gradio app: that's expected. When the status is **Running**, open
    `https://YOUR-HF-USERNAME-lectura-api.hf.space/docs`: you should see the API docs, and
    `/api/health` should show `"groq_configured": true`.
 
