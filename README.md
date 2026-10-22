@@ -2,6 +2,9 @@
 
 **Turn any lecture into smart notes, flashcards, quizzes and a chat you can ask questions.**
 
+**[▶ Live demo](https://lectura-woad.vercel.app)** · frontend on Vercel, backend on Render's free tier
+(the first load after a break takes ~1 minute while the server wakes up)
+
 Paste a YouTube link or upload a recording (English, Hindi or Hinglish). Lectura transcribes it,
 writes structured notes with clickable timestamps, builds flashcards with spaced repetition and a
 quality-checked quiz, and lets you **chat with the lecture**: answers come only from the transcript,
