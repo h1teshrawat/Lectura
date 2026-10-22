@@ -17,7 +17,8 @@ ENV HOME=/home/user \
     PYTHONUNBUFFERED=1 \
     LOCAL_WHISPER_ENABLED=false \
     EMBEDDING_PROVIDER=gemini \
-    RAG_WARMUP=false
+    RAG_WARMUP=false \
+    SEED_DEMO_LECTURES=true
 RUN mkdir -p /home/user/app/data
 WORKDIR /home/user/app
 

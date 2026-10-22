@@ -80,6 +80,24 @@ Browsers only allow a website to call an API on another domain if the API lists 
 **Save Changes** (Render redeploys automatically). Open your Vercel URL: no yellow
 "backend isn't running" banner, and uploading a short MP3/MP4 works end to end.
 
+## Demo lectures (work without YouTube)
+
+YouTube blocks downloads from cloud servers, and the free disk is wiped on every restart. So the
+home-page sample lectures are processed on your PC and bundled in `backend/demo_lectures/`; the
+cloud server loads them on startup (`SEED_DEMO_LECTURES=true` in `backend/Dockerfile.lite`).
+Clicking a sample opens it instantly; its chat index is built on the first question.
+
+To add or refresh one, process it locally, then:
+
+```powershell
+cd C:\Projects\LectureLens\backend
+.\.venv\Scripts\Activate.ps1
+python -m cli.export_demo                 # lists your finished lectures with their IDs
+python -m cli.export_demo 13ee135b564a    # writes demo_lectures\<video id>.json
+```
+
+Commit the JSON file and push; Render redeploys with it.
+
 ## Optional: tune the chat threshold for Gemini embeddings
 
 Each embedding model has its own similarity range. On your PC (with `GEMINI_API_KEY` in `backend\.env`):
@@ -100,8 +118,8 @@ It prints scores for on-topic and off-topic questions and suggests a value. Add 
 | Behaviour | Why / what to do |
 |---|---|
 | First visit after a break takes ~1 minute | Free services **sleep after 15 minutes** without traffic; refresh once it wakes |
-| Lectures disappear after the service sleeps or redeploys | The free disk is **temporary**. Process a lecture and use it in the same session (fine for demos) |
-| YouTube links often fail online | YouTube blocks many cloud-server requests. **Upload the audio/video file** instead (works locally too) |
+| Lectures disappear after the service sleeps or redeploys | The free disk is **temporary**. Process a lecture and use it in the same session (fine for demos). The bundled demo lectures always come back |
+| YouTube links often fail online | YouTube blocks many cloud-server requests. **Upload the audio/video file** instead (works locally too), or use the sample lectures |
 | No offline fallback for transcription | Lite mode has no local Whisper: if Groq is rate-limited, wait a minute and retry |
 
 ## Troubleshooting

@@ -20,6 +20,7 @@ from app.api.errors import register_error_handlers
 from app.api.schemas import HealthOut
 from app.config import Settings, get_settings
 from app.db import repository
+from app.db.demo import seed_demo_lectures
 from app.db.session import create_db_engine, resolve_db_path
 from app.llm.factory import get_llm
 from app.logging_config import setup_logging
@@ -71,6 +72,8 @@ def create_app(
         interrupted = repository.mark_interrupted(engine)
         if interrupted:
             logger.warning("Marked %d interrupted job(s) as failed.", interrupted)
+        if settings.seed_demo_lectures:
+            seed_demo_lectures(engine)
 
         app.state.settings = settings
         app.state.engine = engine

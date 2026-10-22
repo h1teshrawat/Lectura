@@ -77,6 +77,11 @@ class Settings(BaseSettings):
     # Websites allowed to call the API (the Vite dev server by default)
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
+    # Demo
+    # Load the ready-made lectures in demo_lectures/ on startup. Used on free cloud
+    # servers, where the disk is wiped on restart and YouTube blocks downloads.
+    seed_demo_lectures: bool = False
+
     # General
     data_dir: Path = Path("data")
     log_level: str = "INFO"
